@@ -4,11 +4,18 @@ $user = 'root';
 $password = 'Secret123!';
 $db = 'forplay';
 
-$link = mysqli_connect($host, $user, $password, $db);
+$link = mysqli_connect ( $host, $user, $password, $db );
+$events = array ();
 
-if (mysqli_connect_errno()) {
-	echo "Failed to connect to MySQL: " . mysqli_connect_error();
+if (mysqli_connect_errno ()) {
+	$events ['mysql'] = array (
+			'connection' => false,
+			'error' => mysqli_connect_error (),
+			'code' => mysqli_connect_errno () 
+	);
 } else {
-	echo "Connection to MySQL successful";
+	$events ['mysql'] = array (
+			'connection' => true 
+	);
 }
 ?>
