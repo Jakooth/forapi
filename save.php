@@ -63,17 +63,70 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 * In this case it will hapen when you try to add a tag with the same name.
 	 */
 	
-	if (!$result) {
+	if (! $result) {
 		$events ['mysql'] ['result'] = false;
 		$events ['mysql'] ['code'] = mysqli_errno ( $link );
 		$events ['mysql'] ['error'] = mysqli_error ( $link );
 	
 	/**
-	 * If the SQL is successfull just log the event and return true.
+	 * If the SQL is successfull log the event and return true.
+	 * For different object also log the related data.
 	 */
 	} else {
-		$result = mysqli_query ( $link, $log );
-		$events ['mysql'] ['result'] = true;
+		switch ($php_fortag ['object']) {
+			case 'person' :
+				
+				/**
+				 * Insert every related tag id, but only if there are any.
+				 */
+				
+				if ($php_fortag ['related']) {
+					$last = mysqli_insert_id ( $link );
+					
+					foreach ( $php_fortag ['related'] as $value ) {
+						
+						/**
+						 * Null is not accepted in the DB, but we use it to generate error
+						 * and validate empty strings.
+						 */
+						
+						$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
+						
+						$related = "INSERT INTO for_rel_relative
+										(tag_id, related_tag_id)
+									VALUES
+										('{$last}', '{$id}');";
+						
+						$result = mysqli_query ( $link, $related );
+						
+						/**
+						 * We end with with the first sign of error.
+						 */
+						
+						if (! $result) {
+							break;
+						}
+					}
+				}
+				
+				break;
+		}
+		
+		if (! $result) {
+			$events ['mysql'] ['result'] = false;
+			$events ['mysql'] ['code'] = mysqli_errno ( $link );
+			$events ['mysql'] ['error'] = mysqli_error ( $link );
+		} else {
+			$result = mysqli_query ( $link, $log );
+			
+			if (! $result) {
+				$events ['mysql'] ['result'] = false;
+				$events ['mysql'] ['code'] = mysqli_errno ( $link );
+				$events ['mysql'] ['error'] = mysqli_error ( $link );
+			} else {
+				$events ['mysql'] ['result'] = true;
+			}
+		}
 	}
 	
 	/**
