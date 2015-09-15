@@ -1,5 +1,5 @@
 <?php
-include ("db.php");
+include ('db.php');
 
 if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	
@@ -16,24 +16,24 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 * Note for date it is required to bein date format or null.
 	 */
 	
-	$php_fortag ['date'] == '' ? $php_fortag ['date'] = "null" : "'{$php_fortag['date']}'";
-	$php_fortag ['subtype'] == '' ? $php_fortag ['subtype'] = "null" : "'{$php_fortag['subtype']}'";
+	$php_fortag_date = $php_fortag ['date'] == '' ? "null" : "'" . $php_fortag ['date'] . "'";
+	$php_fortag_subtype = $php_fortag ['subtype'] == '' ? "null" : "'" . $php_fortag ['subtype'] . "'";
 	
 	/**
 	 * First query is to insert the tag.
 	 * Note date and type are some private words in SQL.
 	 */
 	
-	$sql = "INSERT INTO for_tags 
-				(bg_name, en_name, tag, `date`, `type`, subtype, object)
-			VALUES 
-				('{$php_fortag['bgName']}', 
-				 '{$php_fortag['enName']}', 
-				 '{$php_fortag['tag']}', 
-				 {$php_fortag['date']}, 
-				 '{$php_fortag['type']}', 
-				 {$php_fortag['subtype']}, 
-				 '{$php_fortag['object']}');";
+	$tag_sql = "INSERT INTO for_tags 
+					(bg_name, en_name, tag, `date`, `type`, subtype, object)
+				VALUES 
+					('{$php_fortag['bgName']}', 
+				 	'{$php_fortag['enName']}', 
+				 	'{$php_fortag['tag']}', 
+				 	$php_fortag_date, 
+				 	'{$php_fortag['type']}', 
+				 	$php_fortag_subtype, 
+				 	'{$php_fortag['object']}');";
 	
 	/**
 	 * Second thing we want to log the changes.
@@ -41,69 +41,100 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 * TODO: Until we have user authentication 0 will equal admin.
 	 */
 	
-	$log = "INSERT INTO for_log
-				(`event`, `table`, tag, object, user, created, acknowledged)
-			VALUES
-				('insert',
-				 'for_tags',
-				 '{$php_fortag['tag']}',
-				 '{$php_fortag['object']}',
-				 0,
-				 now(),
-				 null);";
+	$log_sql = "INSERT INTO for_log
+					(`event`, `table`, tag, object, user, created, acknowledged)
+				VALUES
+					('insert',
+				 	'for_tags',
+				 	'{$php_fortag['tag']}',
+				 	'{$php_fortag['object']}',
+				 	0,
+				 	now(),
+				 	null);";
 	
 	/**
-	 * Try the query.
+	 * We will execute all queries frist and then submit the transaction.
 	 */
 	
-	$result = mysqli_query ( $link, $sql );
+	mysqli_autocommit ( $link, FALSE );
 	
 	/**
-	 * Error 1062 is for duplicate of a unique key.
-	 * In this case it will hapen when you try to add a tag with the same name.
+	 * The most important thing is the tag, so we send it first.
+	 * On failure, there is no point to continue and we can have id gaps.
 	 */
 	
-	if (! $result) {
+	$tag_result = mysqli_query ( $link, $tag_sql );
+	$related_result = true;
+	$log_result = true;
+	
+	if (! $tag_result) {
 		$events ['mysql'] ['result'] = false;
 		$events ['mysql'] ['code'] = mysqli_errno ( $link );
 		$events ['mysql'] ['error'] = mysqli_error ( $link );
-	
-	/**
-	 * If the SQL is successfull log the event and return true.
-	 * For different object also log the related data.
-	 */
 	} else {
+		
+		/**
+		 * Next we query the log, but we do not stop on failure.
+		 * Note the chance for error here is almost impossible,
+		 * Because we generate the values here and not from user input.
+		 */
+		
+		$tag_last = mysqli_insert_id ( $link );
+		$log_result = mysqli_query ( $link, $log_sql );
+		
+		if (! $log_result) {
+			$events ['mysql'] ['result'] = false;
+			$events ['mysql'] ['code'] = mysqli_errno ( $link );
+			$events ['mysql'] ['error'] = mysqli_error ( $link );
+		}
+		
+		/**
+		 * Same for related data to objects.
+		 * We are using mostly ids from the database.
+		 * The chance for an error iv very slick.
+		 */
+		
 		switch ($php_fortag ['object']) {
+			case 'game' :
+				include ('save_game.php');
+				
+				break;
 			case 'person' :
+			case 'character' :
+			case 'dlc' :
 				
 				/**
 				 * Insert every related tag id, but only if there are any.
 				 */
 				
 				if ($php_fortag ['related']) {
-					$last = mysqli_insert_id ( $link );
-					
 					foreach ( $php_fortag ['related'] as $value ) {
 						
 						/**
 						 * Null is not accepted in the DB, but we use it to generate error
 						 * and validate empty strings.
+						 * Note tags are passed to the user interface from the DB,
+						 * so the chance to have a tag withou id near impossible.
 						 */
 						
 						$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
 						
-						$related = "INSERT INTO for_rel_relative
-										(tag_id, related_tag_id)
-									VALUES
-										('{$last}', '{$id}');";
+						$related_sql = "INSERT INTO for_rel_relative
+											(tag_id, related_tag_id)
+										VALUES
+											('{$tag_last}', '{$id}');";
 						
-						$result = mysqli_query ( $link, $related );
+						$related_result = mysqli_query ( $link, $related_sql );
 						
 						/**
 						 * We end with with the first sign of error.
 						 */
 						
-						if (! $result) {
+						if (! $related_result) {
+							$events ['mysql'] ['result'] = false;
+							$events ['mysql'] ['code'] = mysqli_errno ( $link );
+							$events ['mysql'] ['error'] = mysqli_error ( $link );
+							
 							break;
 						}
 					}
@@ -111,22 +142,19 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				
 				break;
 		}
+	}
+	
+	/**
+	 * Only accept the transaction, if all results are successuful.
+	 * Note, on rollback auto-icrement for successful transfers is not reset.
+	 */
+	
+	if ($tag_result && $log_result && $related_result) {
+		$events ['mysql'] ['result'] = true;
 		
-		if (! $result) {
-			$events ['mysql'] ['result'] = false;
-			$events ['mysql'] ['code'] = mysqli_errno ( $link );
-			$events ['mysql'] ['error'] = mysqli_error ( $link );
-		} else {
-			$result = mysqli_query ( $link, $log );
-			
-			if (! $result) {
-				$events ['mysql'] ['result'] = false;
-				$events ['mysql'] ['code'] = mysqli_errno ( $link );
-				$events ['mysql'] ['error'] = mysqli_error ( $link );
-			} else {
-				$events ['mysql'] ['result'] = true;
-			}
-		}
+		mysqli_commit ( $link );
+	} else {
+		mysqli_rollback ( $link );
 	}
 	
 	/**
