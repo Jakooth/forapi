@@ -16,24 +16,26 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 * Note for date it is required to bein date format or null.
 	 */
 	
-	$php_fortag_date = $php_fortag ['date'] == '' ? "null" : "'" . $php_fortag ['date'] . "'";
-	$php_fortag_subtype = $php_fortag ['subtype'] == '' ? "null" : "'" . $php_fortag ['subtype'] . "'";
+	$php_fortag_bgname = isset ( $php_fortag ['bgName'] ) ? "'{$php_fortag ['bgName']}'" : "null";
+	$php_fortag_enname = isset ( $php_fortag ['enName'] ) ? "'{$php_fortag ['enName']}'" : "null";
+	$php_fortag_date = isset ( $php_fortag ['date'] ) ? "'{$php_fortag ['date']}'" : "null";
+	$php_fortag_subtype = isset ( $php_fortag ['subtype'] ) ? "'{$php_fortag ['subtype']}'" : "null";
 	
 	/**
 	 * First query is to insert the tag.
-	 * Note date and type are some private words in SQL.
+	 * Note date and type are private words in SQL.
 	 */
 	
 	$tag_sql = "INSERT INTO for_tags 
 					(bg_name, en_name, tag, `date`, `type`, subtype, object)
 				VALUES 
-					('{$php_fortag['bgName']}', 
-				 	'{$php_fortag['enName']}', 
-				 	'{$php_fortag['tag']}', 
-				 	$php_fortag_date, 
-				 	'{$php_fortag['type']}', 
-				 	$php_fortag_subtype, 
-				 	'{$php_fortag['object']}');";
+					($php_fortag_bgname, 
+				 	 $php_fortag_enname, 
+				 	 '{$php_fortag['tag']}', 
+				 	 $php_fortag_date, 
+				 	 '{$php_fortag['type']}', 
+				 	 $php_fortag_subtype, 
+				 	 '{$php_fortag['object']}');";
 	
 	/**
 	 * Second thing we want to log the changes.
@@ -45,12 +47,12 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 					(`event`, `table`, tag, object, user, created, acknowledged)
 				VALUES
 					('insert',
-				 	'for_tags',
-				 	'{$php_fortag['tag']}',
-				 	'{$php_fortag['object']}',
-				 	0,
-				 	now(),
-				 	null);";
+				 	 'for_tags',
+				 	 '{$php_fortag['tag']}',
+				 	 '{$php_fortag['object']}',
+				 	 0,
+				 	 now(),
+				 	 null);";
 	
 	/**
 	 * We will execute all queries frist and then submit the transaction.
@@ -99,9 +101,22 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				include ('save_game.php');
 				
 				break;
+			case 'movie' :
+				include ('save_movie.php');
+				
+				break;
+			case 'event' :
+				include ('save_event.php');
+				
+				break;
+			case 'book' :
+				include ('save_book.php');
+				
+				break;
 			case 'person' :
 			case 'character' :
 			case 'dlc' :
+			case 'band' :
 				
 				/**
 				 * Insert every related tag id, but only if there are any.
@@ -122,7 +137,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 						$related_sql = "INSERT INTO for_rel_relative
 											(tag_id, related_tag_id)
 										VALUES
-											('{$tag_last}', '{$id}');";
+											({$tag_last}, {$id});";
 						
 						$related_result = mysqli_query ( $link, $related_sql );
 						
@@ -146,7 +161,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	
 	/**
 	 * Only accept the transaction, if all results are successuful.
-	 * Note, on rollback auto-icrement for successful transfers is not reset.
+	 * Note, on rollback auto-increment for successful transfers is not reset.
 	 */
 	
 	if ($tag_result && $log_result && $related_result) {
