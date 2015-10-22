@@ -132,7 +132,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 						 * so the chance to have a tag withou id near impossible.
 						 */
 						
-						$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
+						$id = isset ( $value ['tag_id'] ) ? "'{$value['tag_id']}'" : "null";
 						
 						$related_sql = "INSERT INTO for_rel_relative
 											(tag_id, related_tag_id)

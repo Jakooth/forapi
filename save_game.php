@@ -1,5 +1,4 @@
 <?php
-$related_arr = array ();
 $php_fortag_usdate = isset ( $php_fortag ['usDate'] ) ? "'{$php_fortag ['usDate']}'" : "null";
 
 /**
@@ -17,43 +16,9 @@ if (! $related_result) {
 	goto end;
 }
 
-if ($php_fortag ['stickers']) {
-	foreach ( $php_fortag ['stickers'] as $value ) {
-		$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
-		
-		$related_sql = "INSERT INTO for_rel_stickers
-							(tag_id, sticker_id)
-						VALUES
-							($tag_last, $id);";
-		
-		$related_result = mysqli_query ( $link, $related_sql );
-		
-		if (! $related_result) {
-			goto end;
-		}
-	}
-}
-
-if ($php_fortag ['genres']) {
-	foreach ( $php_fortag ['genres'] as $value ) {
-		$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
-		
-		$related_sql = "INSERT INTO for_rel_genres
-							(tag_id, genre_id)
-						VALUES
-							($tag_last, $id);";
-		
-		$related_result = mysqli_query ( $link, $related_sql );
-		
-		if (! $related_result) {
-			goto end;
-		}
-	}
-}
-
-if ($php_fortag ['platforms']) {
+if (isset ( $php_fortag ['platforms'] )) {
 	foreach ( $php_fortag ['platforms'] as $value ) {
-		$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
+		$id = isset ( $value ['platform_id'] ) ? "'{$value['platform_id']}'" : "null";
 		
 		$related_sql = "INSERT INTO for_rel_platforms
 							(tag_id, platform_id)
@@ -68,38 +33,7 @@ if ($php_fortag ['platforms']) {
 	}
 }
 
-if ($php_fortag ['serie']) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['serie'] );
-}
-
-if ($php_fortag ['similar']) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['similar'] );
-}
-
-if ($php_fortag ['publisher']) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['publisher'] );
-}
-
-if ($php_fortag ['developer']) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['developer'] );
-}
-
-if (count ( $related_arr ) > 0) {
-	foreach ( $related_arr as $value ) {
-		$id = isset ( $value ['id'] ) ? "'{$value['id']}'" : "null";
-		
-		$related_sql = "INSERT INTO for_rel_relative
-							(tag_id, related_tag_id)
-						VALUES
-							($tag_last, $id);";
-		
-		$related_result = mysqli_query ( $link, $related_sql );
-		
-		if (! $related_result) {
-			goto end;
-		}
-	}
-}
+include ('save_related.php');
 
 end:
 
