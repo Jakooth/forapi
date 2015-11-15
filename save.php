@@ -12,7 +12,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	$php_fortag = json_decode ( $json_fortag, true );
 	
 	/**
-	 * Makin some of the optional variable null.
+	 * Making some of the optional variable null.
 	 * Note for date it is required to bein date format or null.
 	 */
 	

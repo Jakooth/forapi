@@ -24,6 +24,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 	$get_platforms_sql = "SELECT * FROM for_platforms";
 	$get_stickers_sql = "SELECT * FROM for_stickers";
 	$get_authors_sql = "SELECT * FROM for_authors";
+	$get_issues_sql = "SELECT * FROM for_issues";
 	
 	$get_tag_result = true;
 	$tags = array ();
@@ -31,7 +32,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 	switch ($get_object) {
 		case "'author'" :
 			$get_tag_result = mysqli_query ( $link, $get_authors_sql );
-				
+			
 			break;
 		case "'sticker'" :
 			$get_tag_result = mysqli_query ( $link, $get_stickers_sql );
@@ -43,6 +44,10 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 			break;
 		case "'platform'" :
 			$get_tag_result = mysqli_query ( $link, $get_platforms_sql );
+			
+			break;
+		case "'issue'" :
+			$get_tag_result = mysqli_query ( $link, $get_issues_sql );
 			
 			break;
 		case "'game'" :
