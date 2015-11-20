@@ -2,11 +2,6 @@
 include ('db.php');
 
 if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
-	
-	/**
-	 * TODO: genre, platform and sticker are in different table
-	 */
-	
 	$get_tag = isset ( $_GET ['tag'] ) ? "{$_GET ['tag']}" : "ANY (SELECT tag_id FROM for_tags)";
 	$get_object = isset ( $_GET ['object'] ) ? "'{$_GET ['object']}'" : "ANY (SELECT object FROM for_tags)";
 	$get_type = isset ( $_GET ['type'] ) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_tags) OR `type` IS NULL";
@@ -57,6 +52,13 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 			$get_tag_result = mysqli_query ( $link, $get_tag_sql );
 			
 			break;
+		default :
+			
+			/**
+			 * TODO: Merge other results like platform and genre here.
+			 */
+			
+			$get_tag_result = mysqli_query ( $link, $get_tag_sql );
 	}
 	
 	if (! $get_tag_result) {

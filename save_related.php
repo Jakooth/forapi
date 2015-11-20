@@ -108,9 +108,9 @@ if (count ( $related_arr ) > 0) {
 		$id = isset ( $value ['tag_id'] ) ? "'{$value['tag_id']}'" : "null";
 		
 		$related_sql = "INSERT INTO for_rel_relative
-		(tag_id, related_tag_id)
-		VALUES
-		($tag_last, $id);";
+							(tag_id, related_tag_id)
+						VALUES
+							($tag_last, $id);";
 		
 		$related_result = mysqli_query ( $link, $related_sql );
 		

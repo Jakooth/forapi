@@ -13,7 +13,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	
 	/**
 	 * Making some of the optional variable null.
-	 * Note for date it is required to bein date format or null.
+	 * Note for date it is required to being date format or null.
 	 */
 	
 	$php_fortag_bgname = isset ( $php_fortag ['bgName'] ) ? "'{$php_fortag ['bgName']}'" : "null";
@@ -122,7 +122,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				 * Insert every related tag id, but only if there are any.
 				 */
 				
-				if ($php_fortag ['related']) {
+				if (isset ( $php_fortag ['related'] )) {
 					foreach ( $php_fortag ['related'] as $value ) {
 						
 						/**
