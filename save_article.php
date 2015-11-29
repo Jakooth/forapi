@@ -17,25 +17,28 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 */
 	
 	$php_forarticle_subtitle = isset ( $php_forarticle ['subtitle'] ) ? "'{$php_forarticle ['subtitle']}'" : "null";
-	$php_forarticle_wideimg = isset ( $php_forarticle ['wide_img'] ) ? "'{$php_forarticle ['wide_img']}'" : "null";
-	$php_forarticle_caretimg = isset ( $php_forarticle ['caret_img'] ) ? "'{$php_forarticle ['caret_img']}'" : "null";
+	$php_forarticle_wide = isset ( $php_forarticle ['wide'] ) ? "'{$php_forarticle ['wide']}'" : "null";
+	$php_forarticle_caret = isset ( $php_forarticle ['caret'] ) ? "'{$php_forarticle ['caret']}'" : "null";
 	$php_forarticle_priority = isset ( $php_forarticle ['priority'] ) ? "'{$php_forarticle ['priority']}'" : "null";
 	$php_forarticle_preview = isset ( $php_forarticle ['preview'] ) ? "'{$php_forarticle ['preview']}'" : "null";
-	$php_forarticle_videotech = isset ( $php_forarticle ['video_tech'] ) ? "'{$php_forarticle ['video_tech']}'" : "null";
-	$php_forarticle_videourl = isset ( $php_forarticle ['video_url'] ) ? "'{$php_forarticle ['video_url']}'" : "null";
-	$php_forarticle_audiotech = isset ( $php_forarticle ['audio_tech'] ) ? "'{$php_forarticle ['audio_tech']}'" : "null";
-	$php_forarticle_audiourl = isset ( $php_forarticle ['audio_url'] ) ? "'{$php_forarticle ['audio_url']}'" : "null";
-	$php_forarticle_audioframe = isset ( $php_forarticle ['audio_frame'] ) ? "'{$php_forarticle ['audio_frame']}'" : "null";
-	$php_forarticle_coverimg = isset ( $php_forarticle ['cover_img'] ) ? "'{$php_forarticle ['cover_img']}'" : "null";
-	$php_forarticle_coveralign = isset ( $php_forarticle ['cover_align'] ) ? "'{$php_forarticle ['cover_align']}'" : "null";
-	$php_forarticle_covervalign = isset ( $php_forarticle ['cover_valign'] ) ? "'{$php_forarticle ['cover_valign']}'" : "null";
-	$php_forarticle_covertheme = isset ( $php_forarticle ['cover_theme'] ) ? "'{$php_forarticle ['cover_theme']}'" : "null";
-	$php_forarticle_coversubtheme = isset ( $php_forarticle ['cover_subtheme'] ) ? "'{$php_forarticle ['cover_subtheme']}'" : "null";
+	$php_forarticle_videotech = isset ( $php_forarticle ['videoTech'] ) ? "'{$php_forarticle ['videoTech']}'" : "null";
+	$php_forarticle_videourl = isset ( $php_forarticle ['videoUrl'] ) ? "'{$php_forarticle ['videoUrl']}'" : "null";
+	$php_forarticle_audiotech = isset ( $php_forarticle ['audioTech'] ) ? "'{$php_forarticle ['audioTech']}'" : "null";
+	$php_forarticle_audiourl = isset ( $php_forarticle ['audioUrl'] ) ? "'{$php_forarticle ['audioUrl']}'" : "null";
+	$php_forarticle_audioframe = isset ( $php_forarticle ['audioFrame'] ) ? "'{$php_forarticle ['audioFrame']}'" : "null";
+	$php_forarticle_cover = isset ( $php_forarticle ['cover'] ) ? "'{$php_forarticle ['cover']}'" : "null";
+	$php_forarticle_coveralign = isset ( $php_forarticle ['coverAlign'] ) ? "'{$php_forarticle ['coverAlign']}'" : "null";
+	$php_forarticle_covervalign = isset ( $php_forarticle ['coverValign'] ) ? "'{$php_forarticle ['coverValign']}'" : "null";
+	$php_forarticle_theme = isset ( $php_forarticle ['theme'] ) ? "'{$php_forarticle ['theme']}'" : "null";
+	$php_forarticle_subtheme = isset ( $php_forarticle ['subtheme'] ) ? "'{$php_forarticle ['subtheme']}'" : "null";
 	$php_forarticle_hype = isset ( $php_forarticle ['hype'] ) ? "'{$php_forarticle ['hype']}'" : "null";
 	$php_forarticle_platform = isset ( $php_forarticle ['platform'] ) ? "'{$php_forarticle ['platform']}'" : "null";
-	$php_forarticle_better = isset ( $php_forarticle ['better'] ) ? "'{$php_forarticle ['better']}'" : "null";
-	$php_forarticle_worse = isset ( $php_forarticle ['worse'] ) ? "'{$php_forarticle ['worse']}'" : "null";
-	$php_forarticle_equal = isset ( $php_forarticle ['equal'] ) ? "'{$php_forarticle ['equal']}'" : "null";
+	$php_forarticle_better = isset ( $php_forarticle ['better'] ) ? "'{$php_forarticle ['better']['value']}'" : "null";
+	$php_forarticle_worse = isset ( $php_forarticle ['worse'] ) ? "'{$php_forarticle ['worse']['value']}'" : "null";
+	$php_forarticle_equal = isset ( $php_forarticle ['equal'] ) ? "'{$php_forarticle ['equal']['value']}'" : "null";
+	$php_forarticle_bettertext = isset ( $php_forarticle ['betterText'] ) ? "'{$php_forarticle ['betterText']}'" : "null";
+	$php_forarticle_worsetext = isset ( $php_forarticle ['worseText'] ) ? "'{$php_forarticle ['worseText']}'" : "null";
+	$php_forarticle_equaltext = isset ( $php_forarticle ['equalText'] ) ? "'{$php_forarticle ['equalText']}'" : "null";
 	
 	/**
 	 * Date is always send from the script, but we need to format it in MySQL pattern.
@@ -59,16 +62,16 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 						  shot_img, wide_img, caret_img,
 						  site, url, `date`, priority, preview,
 						  video_tech, video_url, audio_tech, audio_url, audio_frame,
-						  cover_img, cover_align, cover_valign, cover_theme, cover_subtheme,
-						  hype, platform, better, worse, equal)
+						  cover_img, cover_align, cover_valign, theme, subtheme,
+						  hype, platform, better, worse, equal, better_text, worse_text, equal_text)
 					VALUES
 						('{$php_forarticle['type']}',
 						 '{$php_forarticle['subtype']}',
 						 '{$php_forarticle['title']}',
 						 $php_forarticle_subtitle,
-						 '{$php_forarticle['shot_img']}',
-						 $php_forarticle_wideimg,
-						 $php_forarticle_caretimg,
+						 '{$php_forarticle['shot']}',
+						 $php_forarticle_wide,
+						 $php_forarticle_caret,
 						 '{$php_forarticle['site']}',
 						 '{$php_forarticle['url']}',
 						 '{$php_forarticle_date}',
@@ -79,16 +82,19 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 						 $php_forarticle_audiotech,
 						 $php_forarticle_audiourl,
 						 $php_forarticle_audioframe,
-						 $php_forarticle_coverimg,
+						 $php_forarticle_cover,
 						 $php_forarticle_coveralign,
 						 $php_forarticle_covervalign,
-						 $php_forarticle_covertheme,
-						 $php_forarticle_coversubtheme,
+						 $php_forarticle_theme,
+						 $php_forarticle_subtheme,
 						 $php_forarticle_hype,
 						 $php_forarticle_platform,
 						 $php_forarticle_better,
 						 $php_forarticle_worse,
-						 $php_forarticle_equal);";
+						 $php_forarticle_equal,
+						 $php_forarticle_bettertext,
+						 $php_forarticle_worsetext,
+						 $php_forarticle_equaltext);";
 	
 	$log_sql = "INSERT INTO for_log
 					(`event`, `table`, tag, object, user, created, acknowledged)
@@ -172,6 +178,86 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				
 				if (! $related_result) {
 					goto end;
+				}
+			}
+		}
+		
+		if (isset ( $php_forarticle ['layouts'] )) {
+			foreach ( $php_forarticle ['layouts'] as $layout ) {
+				$layout_subtype = isset ( $layout ['subtype'] ) ? "'{$layout['subtype']}'" : "null";
+				$layout_center = isset ( $layout ['center'] ) ? "'{$layout['center']}'" : "null";
+				$layout_left = isset ( $layout ['left'] ) ? "'{$layout['left']['url']}'" : "null";
+				$layout_left_valign = isset ( $layout ['left'] ) ? "'{$layout['left']['valign']}'" : "null";
+				$layout_left_object = isset ( $layout ['left'] ) ? "'{$layout['left']['object']}'" : "null";
+				$layout_right = isset ( $layout ['right'] ) ? "'{$layout['right']['url']}'" : "null";
+				$layout_right_valign = isset ( $layout ['right'] ) ? "'{$layout['right']['valign']}'" : "null";
+				$layout_right_object = isset ( $layout ['right'] ) ? "'{$layout['right']['object']}'" : "null";
+				
+				$related_sql = "INSERT INTO for_layouts
+									(article_id, 
+									 `type`, subtype, 
+									 center, 
+									 `left`, left_valign, left_object, 
+									 `right`, right_valign, right_object,
+									 ratio)
+								VALUES
+									($article_last, 
+									 '{$layout['type']}', $layout_subtype,
+									 $layout_center,
+									 $layout_left, $layout_left_valign, $layout_left_object,
+									 $layout_right, $layout_right_valign, $layout_right_object,
+									 '{$layout['ratio']}');";
+				
+				$related_result = mysqli_query ( $link, $related_sql );
+				
+				if (! $related_result) {
+					goto end;
+				}
+				
+				$layout_last = mysqli_insert_id ( $link );
+				
+				if (isset ( $layout ['imgs'] )) {
+					foreach ( $layout ['imgs'] as $img ) {
+						$img_tag = isset ( $img ['tag'] ) ? "'{$img['tag']}'" : "null";
+						$img_index = isset ( $img ['index'] ) ? "'{$img['index']}'" : "null";
+						$img_center = isset ( $img ['center'] ) ? "'{$img['center']}'" : "null";
+						$img_author = isset ( $img ['author'] ) ? "'{$img['author']}'" : "null";
+						
+						/**
+						 * Tracklist is the prime tag.
+						 *
+						 * From the tag we can get the full list of songs.
+						 */
+						
+						$img_tracklist = isset ( $img ['tracklist'] ) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
+						$img_align = isset ( $img ['align'] ) ? "'{$img ['align']}'" : "null";
+						$img_valign = isset ( $img ['valign'] ) ? "'{$img ['align']}'" : "null";
+						$img_video = isset ( $img ['video'] ) ? "'{$img ['video']}'" : "null";
+						
+						$related_sql = "INSERT INTO for_rel_imgs
+											(layout_id,
+											 alt, pointer,
+											 tag, `index`,
+											 center, author,
+											 tracklist, align, valign,
+											 video,
+											 ratio)
+										VALUES
+											($layout_last,
+											 '{$img['alt']}', 
+											 '{$img['pointer']}', 
+											 $img_tag, $img_index,
+											 $img_center, $img_author,
+											 $img_tracklist, $img_align, $img_valign,
+											 $img_video,
+											 '{$img['ratio']}');";
+						
+						$related_result = mysqli_query ( $link, $related_sql );
+						
+						if (! $related_result) {
+							goto end;
+						}
+					}
 				}
 			}
 		}
