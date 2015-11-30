@@ -33,9 +33,9 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	$php_forarticle_subtheme = isset ( $php_forarticle ['subtheme'] ) ? "'{$php_forarticle ['subtheme']}'" : "null";
 	$php_forarticle_hype = isset ( $php_forarticle ['hype'] ) ? "'{$php_forarticle ['hype']}'" : "null";
 	$php_forarticle_platform = isset ( $php_forarticle ['platform'] ) ? "'{$php_forarticle ['platform']}'" : "null";
-	$php_forarticle_better = isset ( $php_forarticle ['better'] ) ? "'{$php_forarticle ['better']['value']}'" : "null";
-	$php_forarticle_worse = isset ( $php_forarticle ['worse'] ) ? "'{$php_forarticle ['worse']['value']}'" : "null";
-	$php_forarticle_equal = isset ( $php_forarticle ['equal'] ) ? "'{$php_forarticle ['equal']['value']}'" : "null";
+	$php_forarticle_better = isset ( $php_forarticle ['better'] ) ? "'{$php_forarticle ['better']['tag']}'" : "null";
+	$php_forarticle_worse = isset ( $php_forarticle ['worse'] ) ? "'{$php_forarticle ['worse']['tag']}'" : "null";
+	$php_forarticle_equal = isset ( $php_forarticle ['equal'] ) ? "'{$php_forarticle ['equal']['tag']}'" : "null";
 	$php_forarticle_bettertext = isset ( $php_forarticle ['betterText'] ) ? "'{$php_forarticle ['betterText']}'" : "null";
 	$php_forarticle_worsetext = isset ( $php_forarticle ['worseText'] ) ? "'{$php_forarticle ['worseText']}'" : "null";
 	$php_forarticle_equaltext = isset ( $php_forarticle ['equalText'] ) ? "'{$php_forarticle ['equalText']}'" : "null";
@@ -183,7 +183,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 		}
 		
 		if (isset ( $php_forarticle ['layouts'] )) {
-			foreach ( $php_forarticle ['layouts'] as $layout ) {
+			foreach ( $php_forarticle ['layouts'] as $key => $layout ) {
 				$layout_subtype = isset ( $layout ['subtype'] ) ? "'{$layout['subtype']}'" : "null";
 				$layout_center = isset ( $layout ['center'] ) ? "'{$layout['center']}'" : "null";
 				$layout_left = isset ( $layout ['left'] ) ? "'{$layout['left']['url']}'" : "null";
@@ -199,14 +199,14 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 									 center, 
 									 `left`, left_valign, left_object, 
 									 `right`, right_valign, right_object,
-									 ratio)
+									 ratio, `order`)
 								VALUES
 									($article_last, 
 									 '{$layout['type']}', $layout_subtype,
 									 $layout_center,
 									 $layout_left, $layout_left_valign, $layout_left_object,
 									 $layout_right, $layout_right_valign, $layout_right_object,
-									 '{$layout['ratio']}');";
+									 '{$layout['ratio']}', $key);";
 				
 				$related_result = mysqli_query ( $link, $related_sql );
 				
