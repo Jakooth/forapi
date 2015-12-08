@@ -6,12 +6,15 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 	$get_object = isset ( $_GET ['object'] ) ? "'{$_GET ['object']}'" : "ANY (SELECT object FROM for_tags)";
 	$get_type = isset ( $_GET ['type'] ) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_tags) OR `type` IS NULL";
 	$get_subtype = isset ( $_GET ['subtype'] ) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_tags) OR subtype IS NULL";
+	$get_order = isset ( $_GET ['object'] ) ? "tag_id DESC" : "tag ASC";
 	
 	$get_tag_sql = "SELECT * FROM for_tags 
 					WHERE tag_id = {$get_tag}
     				AND (`type` = {$get_type})
     				AND (subtype = {$get_subtype})
-    				AND object = {$get_object};";
+    				AND object = {$get_object}
+    				ORDER BY {$get_order}
+    				LIMIT 100;";
 	
 	$get_genres_sql = "SELECT * FROM for_genres 
 					   WHERE `type` = {$get_type};";
