@@ -101,8 +101,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				VALUES
 					('insert',
 					 'for_articles',
-					 '{$php_forarticle['prime']['tag']}',
-					 'aside',
+					 '{$php_forarticle['url']}',
+					 '{$php_fortag['object']}',
 					 0,
 					 now(),
 					 null);";
@@ -301,6 +301,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 		$events ['mysql'] ['result'] = true;
 		
 		mysqli_commit ( $link );
+		
+		$save ['id'] = $article_last;
 	} else {
 		mysqli_rollback ( $link );
 	}
@@ -311,7 +313,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	 */
 	
 	echo json_encode ( array (
-			'events' => $events 
+			'events' => $events,
+			'save' => $save 
 	) );
 	
 	mysqli_close ( $link );
