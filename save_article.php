@@ -102,7 +102,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 					('insert',
 					 'for_articles',
 					 '{$php_forarticle['url']}',
-					 '{$php_fortag['object']}',
+					 '{$php_forarticle['subtype']}',
 					 0,
 					 now(),
 					 null);";
@@ -121,6 +121,13 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	$article_result = mysqli_query ( $link, $article_sql );
 	$related_result = true;
 	$log_result = true;
+	
+	/**
+	 * Response values used to update later.
+	 */
+	
+	$operation ['saveId'] = null;
+	$operation ['saveRelated'] = array ();
 	
 	if (! $article_result) {
 		$events ['mysql'] ['result'] = false;
@@ -225,7 +232,6 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 						
 						/**
 						 * Tracklist is the prime tag.
-						 *
 						 * From the tag we can get the full list of songs.
 						 */
 						
@@ -302,7 +308,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 		
 		mysqli_commit ( $link );
 		
-		$save ['id'] = $article_last;
+		$operation ['saveId'] = $article_last;
 	} else {
 		mysqli_rollback ( $link );
 	}
@@ -314,7 +320,7 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 	
 	echo json_encode ( array (
 			'events' => $events,
-			'save' => $save 
+			'operation' => $operation
 	) );
 	
 	mysqli_close ( $link );
