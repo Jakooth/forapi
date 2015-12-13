@@ -39,6 +39,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET') {
 		$events ['mysql'] ['error'] = mysqli_error ( $link );
 		
 		goto end;
+	} else {
+		$events ['mysql'] ['result'] = true;
 	}
 	
 	while ( $article = mysqli_fetch_assoc ( $get_article_result ) ) {
