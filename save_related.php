@@ -35,12 +35,21 @@ if (isset ( $php_fortag ['genres'] )) {
 	}
 }
 
-if (isset ( $php_fortag ['serie'] )) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['serie'] );
+if (isset ( $php_fortag ['country'] )) {
+	$related_sql = "INSERT INTO for_rel_countries
+						(tag_id, country_tag)
+					VALUES
+						($tag_last, '{$php_fortag['country']}');";
+	
+	$related_result = mysqli_query ( $link, $related_sql );
+	
+	if (! $related_result) {
+		goto end;
+	}
 }
 
-if (isset ( $php_fortag ['similar'] )) {
-	$related_arr = array_merge ( $related_arr, $php_fortag ['similar'] );
+if (isset ( $php_fortag ['serie'] )) {
+	$related_arr = array_merge ( $related_arr, $php_fortag ['serie'] );
 }
 
 /**

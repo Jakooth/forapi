@@ -158,123 +158,118 @@ if (getenv ( 'REQUEST_METHOD' ) == 'POST') {
 				include ('save_book.php');
 				
 				break;
-			case 'person' :
-			case 'character' :
-			case 'dlc' :
-			case 'band' :
+		}
+	}
+	
+	/**
+	 * When we update the first task is to delete as many existing entries,
+	 * as is the difference between the old save count and the new one.
+	 * This order is very important, because otherwise you can delete something,
+	 * after it is already updated.
+	 */
+	
+	if (isset ( $php_fortag ['_saveRelated'] )) {
+		$saveRelatedCount = count ( $php_fortag ['_saveRelated'] );
+		$relatedCount = isset ( $php_fortag ['related'] ) ? count ( $php_fortag ['related'] ) : 0;
+		
+		if ($saveRelatedCount > $relatedCount) {
+			for($i = $relatedCount; $i < $saveRelatedCount; $i ++) {
+				$related_delete_sql = "DELETE FROM for_rel_relative
+									   WHERE tag_id = {$php_fortag ['_saveId']}
+									   AND related_tag_id = {$php_fortag ['_saveRelated'] [$i]};";
 				
-				/**
-				 * When we update the first task is to delete as many existing entries,
-				 * as is the difference between the old save count and the new one.
-				 * This order is very important, because otherwise you can delete something,
-				 * after it is already updated.
-				 */
+				$related_result = mysqli_query ( $link, $related_delete_sql );
 				
-				if (isset ( $php_fortag ['_saveRelated'] )) {
-					$saveRelatedCount = count ( $php_fortag ['_saveRelated'] );
-					$relatedCount = isset ( $php_fortag ['related'] ) ? count ( $php_fortag ['related'] ) : 0;
+				if (! $related_result) {
+					$events ['mysql'] ['result'] = false;
+					$events ['mysql'] ['code'] = mysqli_errno ( $link );
+					$events ['mysql'] ['error'] = mysqli_error ( $link );
 					
-					if ($saveRelatedCount > $relatedCount) {
-						for($i = $relatedCount; $i < $saveRelatedCount; $i ++) {
-							$related_delete_sql = "DELETE FROM for_rel_relative
-							WHERE tag_id = {$php_fortag ['_saveId']}
-									AND related_tag_id = {$php_fortag ['_saveRelated'] [$i]};";
-							
-							$related_result = mysqli_query ( $link, $related_delete_sql );
-							
-							if (! $related_result) {
-								$events ['mysql'] ['result'] = false;
-								$events ['mysql'] ['code'] = mysqli_errno ( $link );
-								$events ['mysql'] ['error'] = mysqli_error ( $link );
-								
-								break;
-							}
-						}
-					}
+					break;
 				}
-				
-				/**
-				 * Insert every related tag id, but only if there are any.
-				 * Also check if the operation is update and not insert.
-				 * The goal is to update existing entries as much as possible
-				 * and to prevent generting bigger primary key.
-				 */
-				
-				if (isset ( $php_fortag ['related'] )) {
-					foreach ( $php_fortag ['related'] as $key => $value ) {
-						
-						/**
-						 * Null is not accepted in the DB, but we use it to generate error
-						 * and validate empty strings.
-						 * Note tags are passed to the user interface from the DB,
-						 * so the chance to have a tag withou id near impossible.
-						 */
-						
-						$id = isset ( $value ['tag_id'] ) ? "{$value['tag_id']}" : "null";
-						
-						/**
-						 * Note when updating there is a minimal chance to genrate error,
-						 * if you swap two existing values.
-						 * The problem is that cobmination of tag and related tag is defined
-						 * as unique to avoid duplicates.
-						 * If you swap two tags it will update them in order, thus
-						 * when you change the first one for a moment it will be the same
-						 * as the second, because the database does not know yet about
-						 * the next update.
-						 * TODO: This can solve the problem:
-						 * http://stackoverflow.com/questions/11207574/how-to-swap-values-of-two-rows-in-mysql-without-violating-unique-constraint
-						 */
-						
-						if (isset ( $php_fortag ['_saveRelated'] )) {
-							if ($key < count ( $php_fortag ['_saveRelated'] )) {
-								$related_sql = "UPDATE for_rel_relative
-												SET related_tag_id = {$id}
-												WHERE tag_id = {$php_fortag ['_saveId']}
-												AND related_tag_id = {$php_fortag ['_saveRelated'] [$key]};";
-								
-								goto related_update;
-							} else {
-								goto related_insert;
-							}
-						} else {
-							goto related_insert;
-						}
-						
-						/**
-						 * If _saveRelated is grater than new related items
-						 * we need to do a REMOVE after the cycle,
-						 * starting with _saveRealted minus new related
-						 * and ending with _saveRelated length.
-						 */
-						
-						related_insert:
-						
-						$related_sql = "INSERT INTO for_rel_relative
-											(tag_id, related_tag_id)
-										VALUES
-											({$tag_last}, {$id});";
-						
-						related_update:
-						
-						$related_result = mysqli_query ( $link, $related_sql );
-						
-						array_push ( $operation ['saveRelated'], $id );
-						
-						/**
-						 * We end up on the first sign of error.
-						 */
-						
-						if (! $related_result) {
-							$events ['mysql'] ['result'] = false;
-							$events ['mysql'] ['code'] = mysqli_errno ( $link );
-							$events ['mysql'] ['error'] = mysqli_error ( $link );
-							
-							break;
-						}
-					}
+			}
+		}
+	}
+	
+	/**
+	 * Insert every related tag id, but only if there are any.
+	 * Also check if the operation is update and not insert.
+	 * The goal is to update existing entries as much as possible
+	 * and to prevent generting bigger primary key.
+	 */
+	
+	if (isset ( $php_fortag ['related'] )) {
+		foreach ( $php_fortag ['related'] as $key => $value ) {
+			
+			/**
+			 * Null is not accepted in the DB, but we use it to generate error
+			 * and validate empty strings.
+			 * Note tags are passed to the user interface from the DB,
+			 * so the chance to have a tag withou id near impossible.
+			 */
+			
+			$id = isset ( $value ['tag_id'] ) ? "{$value['tag_id']}" : "null";
+			$subtype = isset ( $value ['subtype'] ) ? "'{$value['subtype']}'" : "null";
+			
+			/**
+			 * Note when updating there is a minimal chance to genrate error,
+			 * if you swap two existing values.
+			 * The problem is that cobmination of tag and related tag is defined
+			 * as unique to avoid duplicates.
+			 * If you swap two tags it will update them in order, thus
+			 * when you change the first one for a moment it will be the same
+			 * as the second, because the database does not know yet about
+			 * the next update.
+			 * TODO: This can solve the problem:
+			 * http://stackoverflow.com/questions/11207574/how-to-swap-values-of-two-rows-in-mysql-without-violating-unique-constraint
+			 */
+			
+			if (isset ( $php_fortag ['_saveRelated'] )) {
+				if ($key < count ( $php_fortag ['_saveRelated'] )) {
+					$related_sql = "UPDATE for_rel_relative
+									SET related_tag_id = {$id}, related_subtype = {$subtype}
+									WHERE tag_id = {$php_fortag ['_saveId']}
+									AND related_tag_id = {$php_fortag ['_saveRelated'] [$key]};";
+					
+					goto related_update;
+				} else {
+					goto related_insert;
 				}
+			} else {
+				goto related_insert;
+			}
+			
+			/**
+			 * If _saveRelated is grater than new related items
+			 * we need to do a REMOVE after the cycle,
+			 * starting with _saveRealted minus new related
+			 * and ending with _saveRelated length.
+			 */
+			
+			related_insert:
+			
+			$related_sql = "INSERT INTO for_rel_relative
+										(tag_id, related_tag_id, related_subtype)
+							VALUES
+										({$tag_last}, {$id}, {$subtype});";
+			
+			related_update:
+			
+			$related_result = mysqli_query ( $link, $related_sql );
+			
+			array_push ( $operation ['saveRelated'], $id );
+			
+			/**
+			 * We end up on the first sign of error.
+			 */
+			
+			if (! $related_result) {
+				$events ['mysql'] ['result'] = false;
+				$events ['mysql'] ['code'] = mysqli_errno ( $link );
+				$events ['mysql'] ['error'] = mysqli_error ( $link );
 				
 				break;
+			}
 		}
 	}
 	
