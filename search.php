@@ -58,7 +58,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET' || getenv ( 'REQUEST_METHOD' ) == 'POST
 		}
 	}
 	
-	$get_tag_sql = "SELECT for_tags.en_name,
+	$get_tag_sql = "SELECT for_tags.tag_id,
+						   for_tags.en_name,
 						   for_tags.tag,
 						   for_tags.object,
 						   for_log.created,
@@ -70,7 +71,8 @@ if (getenv ( 'REQUEST_METHOD' ) == 'GET' || getenv ( 'REQUEST_METHOD' ) == 'POST
 					{$get_tag_where}
 					GROUP BY for_tags.tag, for_tags.object";
 	
-	$get_article_sql = "SELECT for_articles.title AS 'en_name',
+	$get_article_sql = "SELECT for_articles.article_id AS 'tag_id',
+							   for_articles.title AS 'en_name',
 							   for_articles.url  AS 'tag',
 							   for_articles.subtype AS 'object',
 							   for_log.created,
