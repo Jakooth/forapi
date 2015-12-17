@@ -17,8 +17,6 @@ if (! $related_result) {
 	goto end;
 }
 
-include ('save_related.php');
-
 end:
 
 if (! $related_result) {
