@@ -52,7 +52,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						`type`  = '{$php_fortag['type']}',
 						subtype = $php_fortag_subtype,
 						object  = '{$php_fortag['object']}'
-					WHERE tag_id ='{$php_fortag ['_saveId']}';";
+					WHERE tag_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
     } else {
@@ -100,6 +100,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     $tag_result = mysqli_query($link, $tag_sql);
     $related_result = true;
+    $object_result = true;
     $log_result = true;
     
     /**
@@ -154,21 +155,32 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 include ('save_event.php');
                 
                 break;
+            case 'album':
+                include ('save_album.php');
+                
+                break;
         }
     }
     
-    /**
-     * Save all related at once.
-     */
-    
-    include ('save_related.php');
+    if (! $object_result) {
+        $events['mysql']['result'] = false;
+        $events['mysql']['code'] = mysqli_errno($link);
+        $events['mysql']['error'] = mysqli_error($link);
+    } else {
+        
+        /**
+         * Save all related at once.
+         */
+        
+        include ('save_related.php');
+    }
     
     /**
      * Only accept the transaction, if all results are successuful.
      * Note, on rollback auto-increment for successful transfers is not reset.
      */
     
-    if ($tag_result && $log_result && $related_result) {
+    if ($tag_result && $log_result && $related_result && $object_result) {
         mysqli_commit($link);
         
         $events['mysql']['result'] = true;

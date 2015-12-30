@@ -70,7 +70,7 @@ if (isset($php_fortag['music'])) {
 }
 
 /**
- * ALBUM
+ * ALBUM, EVENT
  */
 
 if (isset($php_fortag['artists'])) {
@@ -204,8 +204,6 @@ if (count($related_arr) > 0) {
         
         $related_result = mysqli_query($link, $related_sql);
         
-        array_push($operation['saveRelated'], $id);
-        
         /**
          * We end up on the first sign of error.
          */
@@ -217,6 +215,8 @@ if (count($related_arr) > 0) {
             
             goto end;
         }
+        
+        array_push($operation['saveRelated'], $id);
     }
     
     /**
