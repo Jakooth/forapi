@@ -3,8 +3,12 @@ include ('db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT tag_id FROM for_tags)";
+    $get_genre_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT genre_id FROM for_genres)";
+    $get_platform_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT platform_id FROM for_platforms)";
+    $get_sticker_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT sticker_id FROM for_stickers)";
     $get_object = isset($_GET['object']) ? "'{$_GET ['object']}'" : "ANY (SELECT object FROM for_tags)";
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_tags) OR `type` IS NULL";
+    $get_genre_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_genres) OR `type` IS NULL";
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_tags) OR subtype IS NULL";
     $get_order = isset($_GET['object']) ? "tag_id DESC" : "tag ASC";
     
@@ -25,11 +29,33 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     if (isset($_GET['tag']) && isset($_GET['object'])) {
         switch ($_GET['object']) {
             case 'game':
-                $get_tag_sql = "SELECT for_tags.*, for_games.us_date FROM for_tags
+                $get_tag_sql = "SELECT for_tags.*, 
+                                       for_games.us_date FROM for_tags
 								LEFT JOIN for_games
 							   	ON for_tags.tag_id = for_games.tag_id
 							   	WHERE for_tags.tag_id = {$get_tag}
 							   	GROUP BY tag_id;";
+                
+                break;
+            case 'movie':
+                $get_tag_sql = "SELECT for_tags.*, 
+                                       for_movies.world_date, 
+                                       for_movies.time FROM for_tags
+                                LEFT JOIN for_movies
+                                ON for_tags.tag_id = for_movies.tag_id
+                                WHERE for_tags.tag_id = {$get_tag}
+                                GROUP BY tag_id;";
+                
+                break;
+            case 'event':
+                $get_tag_sql = "SELECT for_tags.*,
+                                for_events.end_date,
+                                for_events.city FROM for_tags
+                                LEFT JOIN for_events
+                                ON for_tags.tag_id = for_events.tag_id
+                                WHERE for_tags.tag_id = {$get_tag}
+                                GROUP BY tag_id;";
+                
                 break;
         }
     }
@@ -48,9 +74,17 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 							AND (for_rel_relative.related_subtype = 'relation' OR
 							     for_rel_relative.related_subtype = 'serie' OR
 							     for_rel_relative.related_subtype = 'publisher' OR
-							     for_rel_relative.related_subtype = 'developer' OR 
+							     for_rel_relative.related_subtype = 'developer' OR
+							     for_rel_relative.related_subtype = 'cast' OR
+							     for_rel_relative.related_subtype = 'director' OR
+							     for_rel_relative.related_subtype = 'writer' OR
+							     for_rel_relative.related_subtype = 'camera' OR
+							     for_rel_relative.related_subtype = 'music' OR
+							     for_rel_relative.related_subtype = 'artist' OR
+							     for_rel_relative.related_subtype = 'translator' OR
+							     for_rel_relative.related_subtype = 'author' OR
 								 for_rel_relative.related_subtype IS NULL)
-							GROUP BY tag_id;";
+							GROUP BY tag_id, related_tag_id, related_subtype;";
         
         $get_related_stickers_sql = "SELECT for_stickers.*, for_rel_relative.related_subtype FROM for_stickers
         							 LEFT JOIN for_rel_relative
@@ -79,18 +113,48 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         						    WHERE for_rel_relative.tag_id = {$get_tag}
         						    AND for_rel_relative.related_subtype = 'country'
         						    GROUP BY country_id;";
+        
+        $get_related_tracks_sql = "SELECT * FROM for_tracks
+                                   WHERE tag_id = {$get_tag}
+                                   ORDER BY `order`;";
     }
     
-    $get_genres_sql = "SELECT * FROM for_genres 
-					   WHERE `type` = {$get_type};";
+    $get_genres_sql = "SELECT genre_id AS tag_id,
+                              name AS bg_name,
+                              tag,
+                              type
+                       FROM for_genres 
+					   WHERE genre_id = {$get_genre_tag} 
+                       AND `type` = {$get_genre_type};";
     
-    $get_platforms_sql = "SELECT * FROM for_platforms ORDER BY name";
-    $get_stickers_sql = "SELECT * FROM for_stickers ORDER BY tag";
-    $get_authors_sql = "SELECT * FROM for_authors ORDER BY en_name";
-    $get_issues_sql = "SELECT * FROM for_issues ORDER BY name";
-    $get_countries_sql = "SELECT * FROM for_countries ORDER BY name";
+    $get_platforms_sql = "SELECT platform_id AS tag_id,
+                                 name AS en_name,
+                                 tag
+                          FROM for_platforms
+                          WHERE platform_id = {$get_platform_tag}
+                          ORDER BY name;";
+    
+    $get_stickers_sql = "SELECT sticker_id AS tag_id,
+                                name AS en_name,
+                                tag,
+                                lib,
+                                subtype
+                         FROM for_stickers
+                         WHERE sticker_id = {$get_sticker_tag}
+                         ORDER BY tag;";
+    
+    $get_authors_sql = "SELECT * FROM for_authors ORDER BY en_name;";
+    $get_issues_sql = "SELECT issue_id, name AS en_name, tag 
+                       FROM for_issues ORDER BY name;";
+    $get_countries_sql = "SELECT * FROM for_countries ORDER BY name;";
     
     $get_tag_result = true;
+    $get_related_result = true;
+    $get_stickers_result = true;
+    $get_platforms_result = true;
+    $get_genres_result = true;
+    $get_country_result = true;
+    $get_tracks_result = true;
     $tags = array();
     
     switch ($get_object) {
@@ -122,22 +186,26 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         case "'movie'":
         case "'company'":
         case "'serie'":
+        case "'album'":
+        case "'band'":
         case "'event'":
+        case "'book'":
             $get_tag_result = mysqli_query($link, $get_tag_sql);
             
             break;
+        
+        /**
+         * This is in case we search without object.
+         */
+        
         default:
             $get_tag_result = mysqli_query($link, $get_tag_sql);
+            
+            break;
     }
     
     if (! $get_tag_result) {
-        $events['mysql']['result'] = false;
-        $events['mysql']['code'] = mysqli_errno($link);
-        $events['mysql']['error'] = mysqli_error($link);
-        
         goto end;
-    } else {
-        $events['mysql']['result'] = true;
     }
     
     while ($tag = mysqli_fetch_assoc($get_tag_result)) {
@@ -149,22 +217,47 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      */
     
     if (isset($_GET['tag'])) {
+        if (isset($_GET['object'])) {
+            if ($_GET['object'] == 'genre' || $_GET['object'] == 'platform' ||
+                     $_GET['object'] == 'sticker') {
+                goto end;
+            }
+        }
+        
         $get_related_result = mysqli_query($link, $get_related_sql);
+        
+        if (! $get_related_result) {
+            goto end;
+        }
+        
         $get_stickers_result = mysqli_query($link, $get_related_stickers_sql);
+        
+        if (! $get_stickers_result) {
+            goto end;
+        }
+        
         $get_platforms_result = mysqli_query($link, $get_related_platforms_sql);
+        
+        if (! $get_platforms_result) {
+            goto end;
+        }
+        
         $get_genres_result = mysqli_query($link, $get_related_genres_sql);
+        
+        if (! $get_genres_result) {
+            goto end;
+        }
+        
         $get_country_result = mysqli_query($link, $get_related_country_sql);
         
-        if (! $get_related_result || ! $get_stickers_result ||
-                 ! $get_platforms_result || ! $get_genres_result ||
-                 ! $get_country_result) {
-            $events['mysql']['result'] = false;
-            $events['mysql']['code'] = mysqli_errno($link);
-            $events['mysql']['error'] = mysqli_error($link);
-            
+        if (! $get_country_result) {
             goto end;
-        } else {
-            $events['mysql']['result'] = true;
+        }
+        
+        $get_tracks_result = mysqli_query($link, $get_related_tracks_sql);
+        
+        if (! $get_tracks_result) {
+            goto end;
         }
         
         while ($tag = mysqli_fetch_assoc($get_related_result)) {
@@ -186,9 +279,23 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         while ($tag = mysqli_fetch_assoc($get_country_result)) {
             $tags[0]['related'][] = $tag;
         }
+        
+        while ($tag = mysqli_fetch_assoc($get_tracks_result)) {
+            $tags[0]['tracks'][] = $tag;
+        }
     }
     
     end:
+    
+    if (! $get_tag_result || ! $get_related_result || ! $get_stickers_result ||
+             ! $get_platforms_result || ! $get_genres_result ||
+             ! $get_country_result || ! $get_tracks_result) {
+        $events['mysql']['result'] = false;
+        $events['mysql']['code'] = mysqli_errno($link);
+        $events['mysql']['error'] = mysqli_error($link);
+    } else {
+        $events['mysql']['result'] = true;
+    }
     
     /**
      * Send the response back to the browser in JSON format.
