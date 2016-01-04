@@ -33,9 +33,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $php_forarticle_subtheme = isset($php_forarticle['subtheme']) ? "'{$php_forarticle ['subtheme']}'" : "null";
     $php_forarticle_hype = isset($php_forarticle['hype']) ? "'{$php_forarticle ['hype']}'" : "null";
     $php_forarticle_platform = isset($php_forarticle['platform']) ? "'{$php_forarticle ['platform']}'" : "null";
-    $php_forarticle_better = isset($php_forarticle['better']) ? "'{$php_forarticle ['better']['tag']}'" : "null";
-    $php_forarticle_worse = isset($php_forarticle['worse']) ? "'{$php_forarticle ['worse']['tag']}'" : "null";
-    $php_forarticle_equal = isset($php_forarticle['equal']) ? "'{$php_forarticle ['equal']['tag']}'" : "null";
+    $php_forarticle_better = isset($php_forarticle['better']) ? "'{$php_forarticle ['better']['tag_id']}'" : "null";
+    $php_forarticle_worse = isset($php_forarticle['worse']) ? "'{$php_forarticle ['worse']['tag_id']}'" : "null";
+    $php_forarticle_equal = isset($php_forarticle['equal']) ? "'{$php_forarticle ['equal']['tag_id']}'" : "null";
     $php_forarticle_bettertext = isset($php_forarticle['betterText']) ? "'{$php_forarticle ['betterText']}'" : "null";
     $php_forarticle_worsetext = isset($php_forarticle['worseText']) ? "'{$php_forarticle ['worseText']}'" : "null";
     $php_forarticle_equaltext = isset($php_forarticle['equalText']) ? "'{$php_forarticle ['equalText']}'" : "null";
@@ -172,6 +172,11 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $operation['saveId'] = null;
     $operation['saveAuthors'] = array();
     $authors_arr = array();
+    $operation['saveTags'] = array();
+    $tags_arr = array();
+    $operation['saveLayouts'] = array();
+    $layouts_arr = array();
+    $imgs_arr = array();
     
     if (! $article_result) {
         $events['mysql']['result'] = false;
@@ -186,7 +191,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          */
         
         if ($php_fortag_isupdate) {
-            $article_last = $php_fortag['_saveId'];
+            $article_last = $php_forarticle['_saveId'];
         } else {
             $article_last = mysqli_insert_id($link);
         }
@@ -203,12 +208,12 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          * Insert or update authors.
          */
         
-        if (isset($php_fortag['author'])) {
-            $authors_arr = $php_fortag['author'];
+        if (isset($php_forarticle['author'])) {
+            $authors_arr = $php_forarticle['author'];
         }
         
-        if (isset($php_fortag['_saveAuthors'])) {
-            $saveAuthorsCount = count($php_fortag['_saveAuthors']);
+        if (isset($php_forarticle['_saveAuthors'])) {
+            $saveAuthorsCount = count($php_forarticle['_saveAuthors']);
             $authorsCount = count($authors_arr);
             
             if ($saveAuthorsCount > $authorsCount) {
@@ -234,7 +239,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 if (isset($php_forarticle['_saveAuthors'])) {
                     if ($key < count($php_forarticle['_saveAuthors'])) {
                         $related_sql = "UPDATE for_rel_authors
-                                        SET author_id = {$id},
+                                        SET author_id = $id,
                                         WHERE article_id = {$php_forarticle ['_saveId']}
                                         AND author_id = {$php_forarticle ['_saveAuthors'] [$key]}
                                         LIMIT 1;";
@@ -253,10 +258,10 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 
                 author_insert:
                 
-                $related_sql = "INSERT INTO for_rel_authors
-							         (article_id, author_id)
+                $related_sql = "INSERT INTO for_rel_authors 
+                                    (article_id, author_id)
 								VALUES
-							         ($article_last, $id);";
+							        ($article_last, $id);";
                 
                 /**
                  * Do update.
@@ -293,29 +298,139 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          */
         
         if (isset($php_forarticle['tags'])) {
-            foreach ($php_forarticle['tags'] as $value) {
-                $id = isset($value['tag_id']) ? "'{$value['tag_id']}'" : "null";
+            $authors_arr = $php_forarticle['tags'];
+        }
+        
+        if (isset($php_forarticle['_saveTags'])) {
+            $saveTagsCount = count($php_forarticle['_saveTags']);
+            $tagsCount = count($tags_arr);
+            
+            if ($saveTagsCount > $tagsCount) {
+                for ($i = $tagsCount; $i < $saveTagsCount; $i ++) {
+                    $related_sql = "DELETE FROM for_rel_tags
+                                    WHERE article_id = {$php_forarticle ['_saveId']}
+                                    AND tag_id = {$php_forarticle ['_saveTags'] [$i]}
+                                    LIMIT 1;";
+                    
+                    $related_result = mysqli_query($link, $related_sql);
+                    
+                    if (! $related_result) {
+                        goto end;
+                    }
+                }
+            }
+        }
+        
+        if (count($tags_arr) > 0) {
+            foreach ($tags_arr as $key => $value) {
+                $id = isset($value['tag_id']) ? "{$value['tag_id']}" : "null";
                 $prime = 0;
                 
                 if ($php_forarticle['prime']['tag_id'] == $value['tag_id']) {
                     $prime = 1;
                 }
                 
+                if (isset($php_forarticle['_saveTags'])) {
+                    if ($key < count($php_forarticle['_saveTags'])) {
+                        $related_sql = "UPDATE for_rel_tags
+                                        SET tag_id = $id,
+                                            prime = $prime
+                                        WHERE article_id = {$php_forarticle ['_saveId']}
+                                        AND tag_id = {$php_forarticle ['_saveTags'] [$key]}
+                                        LIMIT 1;";
+                        
+                        goto tag_update;
+                    } else {
+                        goto tag_insert;
+                    }
+                } else {
+                    goto tag_insert;
+                }
+                
+                /**
+                 * Do insert.
+                 */
+                
+                tag_insert:
+                
                 $related_sql = "INSERT INTO for_rel_tags
-									(tag_id, article_id, prime)
-								VALUES
-									($id, $article_last, $prime);";
+                                    (tag_id, article_id, prime)
+								VALUES 
+								    ($id, $article_last, $prime);";
+                
+                /**
+                 * Do update.
+                 */
+                
+                tag_update:
                 
                 $related_result = mysqli_query($link, $related_sql);
+                
+                /**
+                 * We end up on the first sign of error.
+                 */
                 
                 if (! $related_result) {
                     goto end;
                 }
+                
+                if (isset($php_forarticle['_saveTags'])) {
+                    if ($key < count($php_forarticle['_saveTags'])) {
+                        $tag_last = $php_forarticle['_saveTags'][$key];
+                    } else {
+                        $tag_last = mysqli_insert_id($link);
+                    }
+                } else {
+                    $tag_last = mysqli_insert_id($link);
+                }
+                
+                array_push($operation['saveTags'], $tag_last);
             }
         }
         
+        /**
+         * Insert and update layouts.
+         */
+        
         if (isset($php_forarticle['layouts'])) {
-            foreach ($php_forarticle['layouts'] as $key => $layout) {
+            $layouts_arr = $php_forarticle['layouts'];
+        }
+        
+        if (isset($php_forarticle['layouts'])) {
+            $layouts_arr = $php_forarticle['layouts'];
+            
+            if (isset($php_forarticle['_saveLayouts'])) {
+                $saveLayoutsCount = count($php_forarticle['_saveLayouts']);
+                $layoutsCount = count($tags_arr);
+                
+                if ($saveLayoutsCount > $layoutsCount) {
+                    for ($i = $layoutsCount; $i < $saveLayoutsCount; $i ++) {
+                        $related_sql = "DELETE FROM for_layouts
+                                        WHERE article_id = {$php_forarticle ['_saveId']}
+                                        AND layout_id = {$php_forarticle ['_saveLayouts'] [$i]}
+                                        LIMIT 1;";
+                        
+                        $related_result = mysqli_query($link, $related_sql);
+                        
+                        if (! $related_result) {
+                            goto end;
+                        }
+                        
+                        $related_sql = "DELETE FROM for_rel_imgs
+                                        WHERE layout_id = {$php_forarticle ['_saveLayouts'] [$i]};";
+                        
+                        $related_result = mysqli_query($link, $related_sql);
+                        
+                        if (! $related_result) {
+                            goto end;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (count($layouts_arr) > 0) {
+            foreach ($layouts_arr as $key => $layout) {
                 $layout_subtype = isset($layout['subtype']) ? "'{$layout['subtype']}'" : "null";
                 $layout_center = isset($layout['center']) ? "'{$layout['center']}'" : "null";
                 $layout_left = isset($layout['left']) ? "'{$layout['left']['url']}'" : "null";
@@ -324,6 +439,165 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 $layout_right = isset($layout['right']) ? "'{$layout['right']['url']}'" : "null";
                 $layout_right_valign = isset($layout['right']) ? "'{$layout['right']['valign']}'" : "null";
                 $layout_right_object = isset($layout['right']) ? "'{$layout['right']['object']}'" : "null";
+                
+                /**
+                 * We do this to know, if we need to insert some images.
+                 * The problem is we have one result for update and insert.
+                 */
+                
+                $isUpdate = false;
+                
+                if (isset($php_forarticle['_saveLayouts'])) {
+                    if ($key < count($php_forarticle['_saveLayouts'])) {
+                        $related_sql = "UPDATE for_layouts
+                                        SET `type` = '{$layout['type']}', 
+                                            subtype = $layout_subtype,
+                                            center = $layout_center, 
+                                            `left` =  $layout_left, 
+                                            left_valign = $layout_left_valign, 
+                                            left_object = $layout_left_object, 
+									        `right` = $layout_right, 
+                                            right_valign = $layout_right_valign, 
+                                            right_object = $layout_right_object,
+									        ratio = $layout_right_object, 
+                                            `order` = $key
+                                        WHERE tag_id = {$php_fortag ['_saveId']} 
+                                        AND layout_id = {$php_fortag ['_saveLayouts'] [$key]}
+                                        LIMIT 1;";
+                        
+                        /**
+                         * Insert and update images.
+                         */
+                        
+                        if (isset($layout['imgs'])) {
+                            $imgs_arr = $layout['imgs'];
+                        }
+                        
+                        /**
+                         * Delete imgs.
+                         */
+                        
+                        if (isset($layout['imgs'])) {
+                            if (isset($layout['_saveImgs'])) {
+                                $saveImgsCount = $layout['_saveImgs'];
+                                $imgsCount = count($imgs_arr);
+                            }
+                            
+                            if ($saveImgsCount > $imgsCount) {
+                                for ($i = $imgsCount; $i < $saveImgsCount; $i ++) {
+                                    $imgs_sql = "DELETE FROM for_rel_imgs
+                                                 WHERE layout_id = {$php_fortag ['_saveLayouts'] [$key]}
+                                                 LIMIT 1;";
+                                    
+                                    $imgs_result = mysqli_query($link, 
+                                            $imgs_sql);
+                                    
+                                    if (! $imgs_result) {
+                                        goto end;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        /**
+                         * Update imgs.
+                         */
+                        
+                        if (count($imgs_arr) > 0) {
+                            foreach ($imgs_arr as $key => $img) {
+                                $img_tag = isset($img['tag']) ? "'{$img['tag']}'" : "null";
+                                $img_index = isset($img['index']) ? "'{$img['index']}'" : "null";
+                                $img_center = isset($img['center']) ? "'{$img['center']}'" : "null";
+                                $img_author = isset($img['author']) ? "'{$img['author']}'" : "null";
+                                
+                                /**
+                                 * Tracklist is the prime tag.
+                                 * From the tag we can get the full list of
+                                 * songs.
+                                 */
+                                
+                                $img_tracklist = isset($img['tracklist']) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
+                                $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
+                                $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
+                                $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
+                                
+                                if (isset($layout['_saveImgs'])) {
+                                    if ($key < $layout['_saveImgs']) {
+                                        $img_sql = "UPDATE for_rel_imgs
+                                                    SET alt = '{$img['alt']}',
+                                                        pointer = '{$img['pointer']}',
+                                                        tag = $img_tag,
+                                                        index = $img_index,
+                                                        center = $img_center,
+                                                        author = $img_author,
+                                                        tracklist = $img_tracklist,
+                                                        align = $img_align,
+                                                        valign = $img_valign,
+                                                        video = $img_video,
+                                                        ratio = '{$img['ratio']}'
+                                                        order = $key
+                                                    WHERE layout_id = {$php_fortag ['_saveLayouts'] [$key]}
+                                                    LIMIT 1;";
+                                        
+                                        goto img_update;
+                                    } else {
+                                        goto img_insert;
+                                    }
+                                } else {
+                                    goto img_insert;
+                                }
+                                
+                                img_insert:
+                                
+                                $related_sql = "INSERT INTO for_rel_imgs
+                                                    (layout_id,
+                                                    alt, pointer,
+                                                    tag, `index`,
+                                                    center, author,
+                                                    tracklist, align, valign,
+                                                    video,
+                                                    ratio,
+                                                    `order`)
+                                                VALUES
+                                                    ({$php_fortag ['_saveLayouts'] [$key]},
+                                                    '{$img['alt']}',
+                                                    '{$img['pointer']}',
+                                                    $img_tag, $img_index,
+                                                    $img_center, $img_author,
+                                                    $img_tracklist, $img_align, $img_valign,
+                                                    $img_video,
+                                                    '{$img['ratio']}',
+                                                    $key);";
+                                
+                                img_update:
+                                
+                                $img_result = mysqli_query($link, $img_sql);
+                                
+                                if (! $img_result) {
+                                    goto end;
+                                }
+                            }
+                        }
+                        
+                        $isUpdate = true;
+                        
+                        goto layout_update;
+                    } else {
+                        $isUpdate = false;
+                        
+                        goto layout_insert;
+                    }
+                } else {
+                    $isUpdate = false;
+                    
+                    goto layout_insert;
+                }
+                
+                /**
+                 * Do insert.
+                 */
+                
+                layout_insert:
                 
                 $related_sql = "INSERT INTO for_layouts
 									(article_id, 
@@ -340,71 +614,104 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 									 $layout_right, $layout_right_valign, $layout_right_object,
 									 '{$layout['ratio']}', $key);";
                 
+                /**
+                 * Do update.
+                 */
+                
+                layout_update:
+                
                 $related_result = mysqli_query($link, $related_sql);
                 
                 if (! $related_result) {
                     goto end;
                 }
                 
-                $layout_last = mysqli_insert_id($link);
+                layout_end:
                 
-                if (isset($layout['imgs'])) {
-                    foreach ($layout['imgs'] as $img) {
-                        $img_tag = isset($img['tag']) ? "'{$img['tag']}'" : "null";
-                        $img_index = isset($img['index']) ? "'{$img['index']}'" : "null";
-                        $img_center = isset($img['center']) ? "'{$img['center']}'" : "null";
-                        $img_author = isset($img['author']) ? "'{$img['author']}'" : "null";
-                        
-                        /**
-                         * Tracklist is the prime tag.
-                         * From the tag we can get the full list of songs.
-                         */
-                        
-                        $img_tracklist = isset($img['tracklist']) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
-                        $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
-                        $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
-                        $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
-                        
-                        $related_sql = "INSERT INTO for_rel_imgs
-											(layout_id,
-											 alt, pointer,
-											 tag, `index`,
-											 center, author,
-											 tracklist, align, valign,
-											 video,
-											 ratio)
-										VALUES
-											($layout_last,
-											 '{$img['alt']}', 
-											 '{$img['pointer']}', 
-											 $img_tag, $img_index,
-											 $img_center, $img_author,
-											 $img_tracklist, $img_align, $img_valign,
-											 $img_video,
-											 '{$img['ratio']}');";
-                        
-                        $related_result = mysqli_query($link, $related_sql);
-                        
-                        if (! $related_result) {
-                            goto end;
+                if (isset($php_forarticle['_saveLayouts'])) {
+                    if ($key < count($php_forarticle['_saveLayouts'])) {
+                        $layout_last = $php_forarticle['_saveLayouts'][$key];
+                    } else {
+                        $layout_last = mysqli_insert_id($link);
+                    }
+                } else {
+                    $layout_last = mysqli_insert_id($link);
+                }
+                
+                /**
+                 * Now we insert the related images, but only for new layouts.
+                 */
+                
+                if (! $isUpdate) {
+                    if (isset($layout['imgs'])) {
+                        foreach ($layout['imgs'] as $key => $img) {
+                            $img_tag = isset($img['tag']) ? "'{$img['tag']}'" : "null";
+                            $img_index = isset($img['index']) ? "'{$img['index']}'" : "null";
+                            $img_center = isset($img['center']) ? "'{$img['center']}'" : "null";
+                            $img_author = isset($img['author']) ? "'{$img['author']}'" : "null";
+                            
+                            /**
+                             * Tracklist is the prime tag.
+                             * From the tag we can get the full list of songs.
+                             */
+                            
+                            $img_tracklist = isset($img['tracklist']) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
+                            $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
+                            $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
+                            $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
+                            
+                            $img_sql = "INSERT INTO for_rel_imgs
+                                            (layout_id,
+                                            alt, pointer,
+                                            tag, `index`,
+                                            center, author,
+                                            tracklist, align, valign,
+                                            video,
+                                            ratio,
+                                            `order`)
+                                        VALUES
+                                            ($layout_last,
+                                            '{$img['alt']}',
+                                            '{$img['pointer']}',
+                                            $img_tag, $img_index,
+                                            $img_center, $img_author,
+                                            $img_tracklist, $img_align, $img_valign,
+                                            $img_video,
+                                            '{$img['ratio']}',
+                                            $key);";
+                            
+                            $img_result = mysqli_query($link, $related_sql);
+                            
+                            if (! $img_result) {
+                                goto end;
+                            }
                         }
                     }
                 }
+                
+                array_push($operation['saveLayouts'], $layout_last);
             }
         }
         
         /**
+         * Insert and update issue.
          * It is just one issue, but the JSON is still passing it in array.
          */
         
         if (isset($php_forarticle['issue'])) {
             foreach ($php_forarticle['issue'] as $value) {
-                $id = isset($value['issue_id']) ? "'{$value['issue_id']}'" : "null";
+                $id = isset($value['issue_id']) ? "{$value['issue_id']}" : "null";
                 
-                $related_sql = "INSERT INTO for_rel_issues
-									(article_id, issue_id)
-								VALUES
-									($article_last, $id);";
+                if ($php_fortag_isupdate) {
+                    $related_sql = "UPDATE for_rel_issues
+                                    SET issue_id = $id
+    								WHERE article_id = $article_last;";
+                } else {
+                    $related_sql = "INSERT INTO for_rel_issues
+                                        (article_id, issue_id)
+                                    VALUES
+                                        ($article_last, $id);";
+                }
                 
                 $related_result = mysqli_query($link, $related_sql);
                 
