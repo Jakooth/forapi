@@ -86,28 +86,37 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 								 for_rel_relative.related_subtype IS NULL)
 							GROUP BY tag_id, related_tag_id, related_subtype;";
         
-        $get_related_stickers_sql = "SELECT for_stickers.*, for_rel_relative.related_subtype FROM for_stickers
+        $get_related_stickers_sql = "SELECT for_stickers.sticker_id,
+                                            for_stickers.name AS en_name,
+                                            for_stickers.tag,
+                                            for_stickers.lib,
+                                            for_stickers.subtype,
+                                            for_rel_relative.related_subtype 
+                                     FROM for_stickers
         							 LEFT JOIN for_rel_relative
         							 ON for_stickers.sticker_id = for_rel_relative.related_tag_id
         							 WHERE for_rel_relative.tag_id = {$get_tag}
         							 AND for_rel_relative.related_subtype = 'sticker'
         							 GROUP BY sticker_id;";
         
-        $get_related_platforms_sql = "SELECT for_platforms.*, for_rel_relative.related_subtype FROM for_platforms
+        $get_related_platforms_sql = "SELECT for_platforms.*, for_rel_relative.related_subtype 
+                                      FROM for_platforms
         							  LEFT JOIN for_rel_relative
         							  ON for_platforms.platform_id = for_rel_relative.related_tag_id
         							  WHERE for_rel_relative.tag_id = {$get_tag}
         							  AND for_rel_relative.related_subtype = 'platform'
         							  GROUP BY platform_id;";
         
-        $get_related_genres_sql = "SELECT for_genres.*, for_rel_relative.related_subtype FROM for_genres
+        $get_related_genres_sql = "SELECT for_genres.*, for_rel_relative.related_subtype 
+                                   FROM for_genres
         						   LEFT JOIN for_rel_relative
         						   ON for_genres.genre_id = for_rel_relative.related_tag_id
         						   WHERE for_rel_relative.tag_id = {$get_tag}
         						   AND for_rel_relative.related_subtype = 'genre'
         						   GROUP BY genre_id;";
         
-        $get_related_country_sql = "SELECT for_countries.*, for_rel_relative.related_subtype FROM for_countries
+        $get_related_country_sql = "SELECT for_countries.*, for_rel_relative.related_subtype 
+                                    FROM for_countries
         						    LEFT JOIN for_rel_relative
         						    ON for_countries.country_id = for_rel_relative.related_tag_id
         						    WHERE for_rel_relative.tag_id = {$get_tag}
@@ -143,9 +152,13 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                          WHERE sticker_id = {$get_sticker_tag}
                          ORDER BY tag;";
     
+    $get_issues_sql = "SELECT issue_id, 
+                              name AS en_name, 
+                              tag 
+                       FROM for_issues 
+                       ORDER BY name;";
+    
     $get_authors_sql = "SELECT * FROM for_authors ORDER BY en_name;";
-    $get_issues_sql = "SELECT issue_id, name AS en_name, tag 
-                       FROM for_issues ORDER BY name;";
     $get_countries_sql = "SELECT * FROM for_countries ORDER BY name;";
     
     $get_tag_result = true;

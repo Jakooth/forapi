@@ -19,19 +19,22 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         			    WHERE for_rel_authors.article_id = {$get_tag}
         			    GROUP BY author_id;";
     
-    $get_tags_sql = "SELECT for_tags.* FROM for_tags
-                        LEFT JOIN for_rel_tags
-                        ON for_tags.tag_id = for_rel_tags.tag_id
-                        WHERE for_rel_tags.article_id = {$get_tag}
-                        GROUP BY tag_id
-                        ORDER BY for_rel_tags.prime DESC;";
+    $get_tags_sql = "SELECT for_tags.*, for_rel_tags.prime FROM for_tags
+                     LEFT JOIN for_rel_tags
+                     ON for_tags.tag_id = for_rel_tags.tag_id
+                     WHERE for_rel_tags.article_id = {$get_tag}
+                     GROUP BY tag_id
+                     ORDER BY for_rel_tags.prime DESC;";
     
-    $get_layouts_sql = "SELECT for_layouts.* 
+    $get_layouts_sql = "SELECT for_layouts.*
                         FROM for_layouts
                         WHERE article_id = {$get_tag}
                         ORDER BY `order`;";
     
-    $get_issue_sql = "SELECT for_issues.* FROM for_issues
+    $get_issue_sql = "SELECT for_issues.issue_id,
+                             for_issues.name AS en_name,
+                             for_issues.tag
+                      FROM for_issues
                       LEFT JOIN for_rel_issues
                       ON for_issues.issue_id = for_rel_issues.issue_id
                       WHERE for_rel_issues.article_id = {$get_tag}
@@ -56,6 +59,48 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     }
     
     while ($article = mysqli_fetch_assoc($get_article_result)) {
+        $get_better_sql = "SELECT for_tags.*
+                           FROM for_tags
+                           WHERE tag_id = {$article['better']};";
+        
+        $get_worse_sql = "SELECT for_tags.*
+                          FROM for_tags
+                          WHERE tag_id = {$article['worse']};";
+        
+        $get_equal_sql = "SELECT for_tags.*
+                          FROM for_tags
+                          WHERE tag_id = {$article['equal']};";
+        
+        $get_bwe_result = mysqli_query($link, $get_better_sql);
+        
+        if ($get_bwe_result) {
+            while ($bwe = mysqli_fetch_assoc($get_bwe_result)) {
+                $article['better'] = array(
+                        $bwe
+                );
+            }
+        }
+        
+        $get_bwe_result = mysqli_query($link, $get_worse_sql);
+        
+        if ($get_bwe_result) {
+            while ($bwe = mysqli_fetch_assoc($get_bwe_result)) {
+                $article['worse'] = array(
+                        $bwe
+                );
+            }
+        }
+        
+        $get_bwe_result = mysqli_query($link, $get_equal_sql);
+        
+        if ($get_bwe_result) {
+            while ($bwe = mysqli_fetch_assoc($get_bwe_result)) {
+                $article['equal'] = array(
+                        $bwe
+                );
+            }
+        }
+        
         $articles[] = $article;
     }
     
@@ -100,6 +145,19 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         }
         
         while ($layout = mysqli_fetch_assoc($get_layouts_result)) {
+            $get_imgs_sql = "SELECT for_rel_imgs.*
+                             FROM for_rel_imgs
+                             WHERE layout_id = {$layout['layout_id']}
+                             ORDER BY `order`;";
+            
+            $get_imgs_result = mysqli_query($link, $get_imgs_sql);
+            
+            if ($get_imgs_result) {
+                while ($img = mysqli_fetch_assoc($get_imgs_result)) {
+                    $layout['imgs'][] = $img;
+                }
+            }
+            
             $articles[0]['layouts'][] = $layout;
         }
         
