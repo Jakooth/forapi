@@ -39,7 +39,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $php_forarticle_bettertext = isset($php_forarticle['betterText']) ? "'{$php_forarticle ['betterText']}'" : "null";
     $php_forarticle_worsetext = isset($php_forarticle['worseText']) ? "'{$php_forarticle ['worseText']}'" : "null";
     $php_forarticle_equaltext = isset($php_forarticle['equalText']) ? "'{$php_forarticle ['equalText']}'" : "null";
-    $php_fortag_isupdate = isset($php_forarticle['_saveId']);
+    $php_forarticle_isupdate = isset($php_forarticle['_saveId']);
     
     /**
      * Date is always send from the script,
@@ -49,7 +49,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $php_forarticle_date = date(' Y-m-d H:i:s', 
             strtotime($php_forarticle['date']));
     
-    if ($php_fortag_isupdate) {
+    if ($php_forarticle_isupdate) {
         $article_sql = "UPDATE for_articles
                         SET `type` = '{$php_forarticle['type']}',
                             subtype = '{$php_forarticle['subtype']}',
@@ -81,7 +81,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                             better_text = $php_forarticle_bettertext,
                             worse_text = $php_forarticle_worsetext,
                             equal_text = $php_forarticle_equaltext
-                        WHERE article_id = {$php_article ['_saveId']};";
+                        WHERE article_id = {$php_forarticle ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
     } else {
@@ -163,6 +163,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     $article_result = mysqli_query($link, $article_sql);
     $related_result = true;
+    $img_result = true;
     $log_result = true;
     
     /**
@@ -190,7 +191,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          * Because we generate the values here and not from user input.
          */
         
-        if ($php_fortag_isupdate) {
+        if ($php_forarticle_isupdate) {
             $article_last = $php_forarticle['_saveId'];
         } else {
             $article_last = mysqli_insert_id($link);
@@ -239,7 +240,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 if (isset($php_forarticle['_saveAuthors'])) {
                     if ($key < count($php_forarticle['_saveAuthors'])) {
                         $related_sql = "UPDATE for_rel_authors
-                                        SET author_id = $id,
+                                        SET author_id = $id
                                         WHERE article_id = {$php_forarticle ['_saveId']}
                                         AND author_id = {$php_forarticle ['_saveAuthors'] [$key]}
                                         LIMIT 1;";
@@ -279,17 +280,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     goto end;
                 }
                 
-                if (isset($php_forarticle['_saveAuthors'])) {
-                    if ($key < count($php_forarticle['_saveAuthors'])) {
-                        $author_last = $php_forarticle['_saveAuthors'][$key];
-                    } else {
-                        $author_last = mysqli_insert_id($link);
-                    }
-                } else {
-                    $author_last = mysqli_insert_id($link);
-                }
-                
-                array_push($operation['saveAuthors'], $author_last);
+                array_push($operation['saveAuthors'], $id);
             }
         }
         
@@ -298,7 +289,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          */
         
         if (isset($php_forarticle['tags'])) {
-            $authors_arr = $php_forarticle['tags'];
+            $tags_arr = $php_forarticle['tags'];
         }
         
         if (isset($php_forarticle['_saveTags'])) {
@@ -374,17 +365,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     goto end;
                 }
                 
-                if (isset($php_forarticle['_saveTags'])) {
-                    if ($key < count($php_forarticle['_saveTags'])) {
-                        $tag_last = $php_forarticle['_saveTags'][$key];
-                    } else {
-                        $tag_last = mysqli_insert_id($link);
-                    }
-                } else {
-                    $tag_last = mysqli_insert_id($link);
-                }
-                
-                array_push($operation['saveTags'], $tag_last);
+                array_push($operation['saveTags'], $id);
             }
         }
         
@@ -401,7 +382,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             if (isset($php_forarticle['_saveLayouts'])) {
                 $saveLayoutsCount = count($php_forarticle['_saveLayouts']);
-                $layoutsCount = count($tags_arr);
+                $layoutsCount = count($layouts_arr);
                 
                 if ($saveLayoutsCount > $layoutsCount) {
                     for ($i = $layoutsCount; $i < $saveLayoutsCount; $i ++) {
@@ -459,10 +440,10 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 									        `right` = $layout_right, 
                                             right_valign = $layout_right_valign, 
                                             right_object = $layout_right_object,
-									        ratio = $layout_right_object, 
+									        ratio = '{$layout['ratio']}', 
                                             `order` = $key
-                                        WHERE tag_id = {$php_fortag ['_saveId']} 
-                                        AND layout_id = {$php_fortag ['_saveLayouts'] [$key]}
+                                        WHERE article_id = {$php_forarticle ['_saveId']} 
+                                        AND layout_id = {$php_forarticle ['_saveLayouts'] [$key]}
                                         LIMIT 1;";
                         
                         /**
@@ -484,15 +465,14 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                             }
                             
                             if ($saveImgsCount > $imgsCount) {
-                                for ($i = $imgsCount; $i < $saveImgsCount; $i ++) {
-                                    $imgs_sql = "DELETE FROM for_rel_imgs
-                                                 WHERE layout_id = {$php_fortag ['_saveLayouts'] [$key]}
-                                                 LIMIT 1;";
+                                for ($j = $imgsCount; $j < $saveImgsCount; $j ++) {
+                                    $img_sql = "DELETE FROM for_rel_imgs
+                                                WHERE layout_id = {$php_forarticle ['_saveLayouts'] [$key]}
+                                                LIMIT 1;";
                                     
-                                    $imgs_result = mysqli_query($link, 
-                                            $imgs_sql);
+                                    $img_result = mysqli_query($link, $img_sql);
                                     
-                                    if (! $imgs_result) {
+                                    if (! $img_result) {
                                         goto end;
                                     }
                                 }
@@ -504,7 +484,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                          */
                         
                         if (count($imgs_arr) > 0) {
-                            foreach ($imgs_arr as $key => $img) {
+                            foreach ($imgs_arr as $imgKey => $img) {
                                 $img_tag = isset($img['tag']) ? "'{$img['tag']}'" : "null";
                                 $img_index = isset($img['index']) ? "'{$img['index']}'" : "null";
                                 $img_center = isset($img['center']) ? "'{$img['center']}'" : "null";
@@ -516,27 +496,35 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                  * songs.
                                  */
                                 
-                                $img_tracklist = isset($img['tracklist']) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
+                                $img_tracklist = isset($img['tracklist']) ? "'{$php_forarticle ['prime'] ['tag_id']}'" : "null";
                                 $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
                                 $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
                                 $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
                                 
+                                /**
+                                 * Use nagative value and negate to positive
+                                 * after all is updated.
+                                 * The goal is to avoid temporary duplicates.
+                                 */
+                                
                                 if (isset($layout['_saveImgs'])) {
-                                    if ($key < $layout['_saveImgs']) {
+                                    if ($imgKey < $layout['_saveImgs']) {
                                         $img_sql = "UPDATE for_rel_imgs
-                                                    SET alt = '{$img['alt']}',
+                                                    SET article_id = {$php_forarticle ['_saveId']},
+                                                        layout_id = -{$php_forarticle ['_saveLayouts'] [$key]},
+                                                        alt = '{$img['alt']}',
                                                         pointer = '{$img['pointer']}',
                                                         tag = $img_tag,
-                                                        index = $img_index,
+                                                        `index` = $img_index,
                                                         center = $img_center,
                                                         author = $img_author,
                                                         tracklist = $img_tracklist,
                                                         align = $img_align,
                                                         valign = $img_valign,
                                                         video = $img_video,
-                                                        ratio = '{$img['ratio']}'
-                                                        order = $key
-                                                    WHERE layout_id = {$php_fortag ['_saveLayouts'] [$key]}
+                                                        ratio = '{$img['ratio']}',
+                                                        `order` = $imgKey
+                                                    WHERE layout_id = {$php_forarticle ['_saveLayouts'] [$key]}
                                                     LIMIT 1;";
                                         
                                         goto img_update;
@@ -549,25 +537,26 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                 
                                 img_insert:
                                 
-                                $related_sql = "INSERT INTO for_rel_imgs
-                                                    (layout_id,
-                                                    alt, pointer,
-                                                    tag, `index`,
-                                                    center, author,
-                                                    tracklist, align, valign,
-                                                    video,
-                                                    ratio,
-                                                    `order`)
-                                                VALUES
-                                                    ({$php_fortag ['_saveLayouts'] [$key]},
-                                                    '{$img['alt']}',
-                                                    '{$img['pointer']}',
-                                                    $img_tag, $img_index,
-                                                    $img_center, $img_author,
-                                                    $img_tracklist, $img_align, $img_valign,
-                                                    $img_video,
-                                                    '{$img['ratio']}',
-                                                    $key);";
+                                $img_sql = "INSERT INTO for_rel_imgs
+                                                (article_id, layout_id,
+                                                 alt, pointer,
+                                                 tag, `index`,
+                                                 center, author,
+                                                 tracklist, align, valign,
+                                                 video,
+                                                 ratio,
+                                                 `order`)
+                                            VALUES
+                                                ({$php_forarticle ['_saveId']},
+                                                 {$php_forarticle ['_saveLayouts'] [$key]},
+                                                 '{$img['alt']}',
+                                                 '{$img['pointer']}',
+                                                 $img_tag, $img_index,
+                                                 $img_center, $img_author,
+                                                 $img_tracklist, $img_align, $img_valign,
+                                                 $img_video,
+                                                 '{$img['ratio']}',
+                                                 $imgKey);";
                                 
                                 img_update:
                                 
@@ -644,7 +633,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 
                 if (! $isUpdate) {
                     if (isset($layout['imgs'])) {
-                        foreach ($layout['imgs'] as $key => $img) {
+                        foreach ($layout['imgs'] as $imgKey => $img) {
                             $img_tag = isset($img['tag']) ? "'{$img['tag']}'" : "null";
                             $img_index = isset($img['index']) ? "'{$img['index']}'" : "null";
                             $img_center = isset($img['center']) ? "'{$img['center']}'" : "null";
@@ -661,31 +650,45 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                             $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
                             
                             $img_sql = "INSERT INTO for_rel_imgs
-                                            (layout_id,
-                                            alt, pointer,
-                                            tag, `index`,
-                                            center, author,
-                                            tracklist, align, valign,
-                                            video,
-                                            ratio,
-                                            `order`)
+                                            (article_id, layout_id,
+                                             alt, pointer,
+                                             tag, `index`,
+                                             center, author,
+                                             tracklist, align, valign,
+                                             video,
+                                             ratio,
+                                             `order`)
                                         VALUES
-                                            ($layout_last,
-                                            '{$img['alt']}',
-                                            '{$img['pointer']}',
-                                            $img_tag, $img_index,
-                                            $img_center, $img_author,
-                                            $img_tracklist, $img_align, $img_valign,
-                                            $img_video,
-                                            '{$img['ratio']}',
-                                            $key);";
+                                            ($article_last, $layout_last,
+                                             '{$img['alt']}', '{$img['pointer']}',
+                                             $img_tag, $img_index,
+                                             $img_center, $img_author,
+                                             $img_tracklist, $img_align, $img_valign,
+                                             $img_video,
+                                             '{$img['ratio']}',
+                                             $imgKey);";
                             
-                            $img_result = mysqli_query($link, $related_sql);
+                            $img_result = mysqli_query($link, $img_sql);
                             
                             if (! $img_result) {
                                 goto end;
                             }
                         }
+                    }
+                } else {
+                    
+                    /**
+                     * Negate the new indices.
+                     */
+                    
+                    $img_sql = "UPDATE for_rel_imgs
+                    			SET layout_id = -layout_id
+                    			WHERE layout_id < 0;";
+                    
+                    $img_result = mysqli_query($link, $img_sql);
+                    
+                    if (! $img_result) {
+                        goto end;
                     }
                 }
                 
@@ -702,7 +705,17 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             foreach ($php_forarticle['issue'] as $value) {
                 $id = isset($value['issue_id']) ? "{$value['issue_id']}" : "null";
                 
-                if ($php_fortag_isupdate) {
+                $related_sql = "SELECT * 
+                                FROM for_rel_issues 
+                                WHERE article_id = $article_last";
+                
+                $related_result = mysqli_query($link, $related_sql);
+                
+                if (! $related_result) {
+                    goto end;
+                }
+                
+                if (mysqli_num_rows($related_result) > 0) {
                     $related_sql = "UPDATE for_rel_issues
                                     SET issue_id = $id
     								WHERE article_id = $article_last;";
@@ -723,7 +736,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
         
         end:
         
-        if (! $related_result) {
+        if (! $related_result || ! $img_result) {
             $events['mysql']['result'] = false;
             $events['mysql']['code'] = mysqli_errno($link);
             $events['mysql']['error'] = mysqli_error($link);
@@ -735,7 +748,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
      * Note, on rollback auto-increment for successful transfers is not reset.
      */
     
-    if ($article_result && $log_result && $related_result) {
+    if ($article_result && $log_result && $related_result && $img_result) {
         $events['mysql']['result'] = true;
         
         mysqli_commit($link);
