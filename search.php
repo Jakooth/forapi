@@ -17,8 +17,12 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
     $php_forsearh = json_decode($json_forsearch, true);
     
     /**
-     * TODO: Test which table and append the WHERE clause before GROUP BY.
+     * Consider we can also search with GET request.
      */
+    
+    if (isset($_GET['table'])) {
+        $php_forsearh['table'] = $_GET['table'];
+    }
     
     $get_tag_where = "";
     $get_article_where = "";

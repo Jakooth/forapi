@@ -163,7 +163,7 @@ if (count($related_arr) > 0) {
          * as the second, because the database does not know yet about
          * the next update.
          * To resolve this we use nagative value and negate to positive after
-         * all is updates:
+         * all is updated:
          * http://stackoverflow.com/questions/11207574/how-to-swap-values-of-two-rows-in-mysql-without-violating-unique-constraint
          * TODO: What if id and related_id match?
          * Note the table is unique by 3 criterias.
