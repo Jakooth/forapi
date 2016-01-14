@@ -12,13 +12,17 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_tags) OR subtype IS NULL";
     $get_order = isset($_GET['object']) ? "tag_id DESC" : "tag ASC";
     
+    /**
+     * TODO: At some point this limit can cause issues.
+     */
+    
     $get_tag_sql = "SELECT * FROM for_tags 
 					WHERE tag_id = {$get_tag}
     				AND (`type` = {$get_type})
     				AND (subtype = {$get_subtype})
     				AND object = {$get_object}
     				ORDER BY {$get_order}
-    				LIMIT 100;";
+    				LIMIT 100000;";
     
     /**
      * For a few objects we store additonal data and the query need to be
