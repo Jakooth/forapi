@@ -106,11 +106,17 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
     $get_sticker_sql = "SELECT for_stickers.sticker_id AS tag_id,
                                for_stickers.name AS en_name,
                                for_stickers.tag,
+                               for_stickers.lib,
+                               for_stickers.subtype,
                                'sticker' AS object
                         FROM for_stickers;";
     
+    /**
+     * TODO: At some point this limit can cause issues.
+     */
+    
     $get_result_sql = "ORDER BY created DESC 
-					   LIMIT 100;";
+					   LIMIT 100000;";
     
     if (isset($php_forsearh['tag'])) {
         switch ($php_forsearh['tag'][0]['table']) {

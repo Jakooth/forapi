@@ -143,17 +143,6 @@ if (count($related_arr) > 0) {
         $subtype = isset($value['subtype']) ? "'{$value['subtype']}'" : "null";
         
         /**
-         * Some objects like sticker have different id indentifyer.
-         */
-        
-        switch ($subtype) {
-            case "'sticker'":
-                $id = isset($value['sticker_id']) ? "{$value['sticker_id']}" : "null";
-                
-                break;
-        }
-        
-        /**
          * Note when updating there is a minimal chance to genrate error,
          * if you swap two existing values.
          * The problem is that cobmination of tag and related tag is defined
