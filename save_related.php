@@ -161,7 +161,7 @@ if (count($related_arr) > 0) {
         if (isset($php_fortag['_saveRelated'])) {
             if ($key < count($php_fortag['_saveRelated'])) {
                 $related_sql = "UPDATE for_rel_relative
-								SET related_tag_id = -{$id}, related_subtype = {$subtype}
+								SET related_tag_id = -$id, related_subtype = $subtype
 								WHERE tag_id = {$php_fortag ['_saveId']}
 								AND related_tag_id = {$php_fortag ['_saveRelated'] [$key]}
 								LIMIT 1;";
@@ -183,7 +183,7 @@ if (count($related_arr) > 0) {
         $related_sql = "INSERT INTO for_rel_relative
 							(tag_id, related_tag_id, related_subtype)
 						VALUES
-							({$tag_last}, {$id}, {$subtype});";
+							($tag_last, $id, $subtype);";
         
         /**
          * Do update.

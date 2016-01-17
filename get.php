@@ -90,7 +90,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 								 for_rel_relative.related_subtype IS NULL)
 							GROUP BY tag_id, related_tag_id, related_subtype;";
         
-        $get_related_stickers_sql = "SELECT for_stickers.sticker_id,
+        $get_related_stickers_sql = "SELECT for_stickers.sticker_id AS tag_id,
                                             for_stickers.name AS en_name,
                                             for_stickers.tag,
                                             for_stickers.lib,
