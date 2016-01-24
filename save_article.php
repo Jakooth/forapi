@@ -452,6 +452,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                         
                         if (isset($layout['imgs'])) {
                             $imgs_arr = $layout['imgs'];
+                        } else {
+                            $imgs_arr = array();
                         }
                         
                         /**
@@ -498,7 +500,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                 
                                 $img_tracklist = isset($img['tracklist']) ? "'{$php_forarticle ['prime'] ['tag_id']}'" : "null";
                                 $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
-                                $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
+                                $img_valign = isset($img['valign']) ? "'{$img ['valign']}'" : "null";
                                 $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
                                 
                                 /**
@@ -644,7 +646,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                              * From the tag we can get the full list of songs.
                              */
                             
-                            $img_tracklist = isset($img['tracklist']) ? "'$php_forarticle ['prime'] ['tag_id']'" : "null";
+                            $img_tracklist = isset($img['tracklist']) ? "'{$php_forarticle ['prime'] ['tag_id']}'" : "null";
                             $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
                             $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
                             $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
