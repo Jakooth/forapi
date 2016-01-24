@@ -16,20 +16,21 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     
     /**
      * This will exclude some quotes and carets without priority.
-     * TODO: Provide code for getting specific issue.
+     * TODO: Provide code for getting specific issue:
      * WHERE and MAX need to be variables.
      */
     
     if (count($_GET) <= 0 || $get_issue) {
         $get_article_sql = "SELECT for_articles.*, 
                                    for_issues.`name` AS issue, 
-                                   max(for_issues.tag) AS issue_tag 
+                                   for_issues.tag AS issue_tag 
                             FROM for_articles
                             INNER JOIN for_rel_issues ON for_articles.article_id = for_rel_issues.article_id
                             INNER JOIN for_issues ON for_issues.issue_id = for_rel_issues.issue_id
                             WHERE (subtype 
                             IN ('news', 'video', 'review', 'feature') 
                             OR (subtype = 'aside' AND priority = 'aside'))
+                            AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
                             ORDER BY date DESC;";
     }
     
@@ -207,6 +208,10 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         
         while ($tag = mysqli_fetch_assoc($get_tags_result)) {
             $articles[0]['tags'][] = $tag;
+            
+            if ($tag['prime'] == 1) {
+                $articles[0]['prime'] = $tag;
+            }
         }
         
         /**
