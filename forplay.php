@@ -183,6 +183,25 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     if (isset($_GET['tag'])) {
         
         /**
+         * Merge version tested.
+         * To display the aside infor the id of the platform is not enough.
+         */
+        
+        if ($articles[0]['subtype'] == 'review') {
+            $get_platform_sql = "SELECT for_platforms.*
+                                 FROM for_platforms
+                                 WHERE platform_id = {$articles[0]['platform']};";
+            
+            $get_platform_result = mysqli_query($link, $get_platform_sql);
+            
+            if ($get_platform_result) {
+                $platform = mysqli_fetch_assoc($get_platform_result);
+                
+                $articles[0]['version_tested'] = $platform;
+            }
+        }
+        
+        /**
          * Merge auhors.
          */
         
