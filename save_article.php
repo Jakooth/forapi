@@ -648,7 +648,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                             
                             $img_tracklist = isset($img['tracklist']) ? "'{$php_forarticle ['prime'] ['tag_id']}'" : "null";
                             $img_align = isset($img['align']) ? "'{$img ['align']}'" : "null";
-                            $img_valign = isset($img['valign']) ? "'{$img ['align']}'" : "null";
+                            $img_valign = isset($img['valign']) ? "'{$img ['valign']}'" : "null";
                             $img_video = isset($img['video']) ? "'{$img ['video']}'" : "null";
                             
                             $img_sql = "INSERT INTO for_rel_imgs
