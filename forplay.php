@@ -85,7 +85,9 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     }
     
     while ($article = mysqli_fetch_assoc($get_article_result)) {
-        if ($article['subtype'] == 'review') {
+        if ($article['subtype'] == 'review' || 
+            $article['subtype'] == 'video') {
+                
             $get_better_sql = "SELECT for_tags.*
                                FROM for_tags
                                WHERE tag_id = {$article['better']};";
@@ -184,10 +186,12 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         
         /**
          * Merge version tested.
-         * To display the aside infor the id of the platform is not enough.
+         * To display the aside info the id of the platform is not enough.
          */
         
-        if ($articles[0]['subtype'] == 'review') {
+        if ($articles[0]['subtype'] == 'review' || 
+            $articles[0]['subtype'] == 'video') {
+                
             $get_platform_sql = "SELECT for_platforms.*
                                  FROM for_platforms
                                  WHERE platform_id = {$articles[0]['platform']};";
