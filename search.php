@@ -14,14 +14,14 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
      */
     
     $json_forsearch = file_get_contents("php://input");
-    $php_forsearh = json_decode($json_forsearch, true);
+    $php_forsearch = json_decode($json_forsearch, true);
     
     /**
      * Consider we can also search with GET request.
      */
     
     if (isset($_GET['table'])) {
-        $php_forsearh['table'] = $_GET['table'];
+        $php_forsearch['table'] = $_GET['table'];
     }
     
     $get_tag_where = "";
@@ -35,30 +35,30 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
      * Single item has all search criteria set in the tag object.
      */
     
-    if (isset($php_forsearh['type'])) {
-        $get_article_where = "WHERE for_articles.type = '{$php_forsearh['type']}'";
-        $get_tag_where = "WHERE for_tags.type = '{$php_forsearh['type']}'";
-        $get_genre_where = "WHERE for_genres.type = '{$php_forsearh['type']}'";
+    if (isset($php_forsearch['type'])) {
+        $get_article_where = "WHERE for_articles.type = '{$php_forsearch['type']}'";
+        $get_tag_where = "WHERE for_tags.type = '{$php_forsearch['type']}'";
+        $get_genre_where = "WHERE for_genres.type = '{$php_forsearch['type']}'";
     }
     
-    if (isset($php_forsearh['subtype'])) {
+    if (isset($php_forsearch['subtype'])) {
         if (strlen($get_article_where) > 0) {
-            $get_article_where .= "AND for_articles.subtype = '{$php_forsearh['subtype']}'";
+            $get_article_where .= "AND for_articles.subtype = '{$php_forsearch['subtype']}'";
         } else {
-            $get_article_where = "WHERE for_articles.subtype = '{$php_forsearh['subtype']}'";
+            $get_article_where = "WHERE for_articles.subtype = '{$php_forsearch['subtype']}'";
         }
     }
     
-    if (isset($php_forsearh['tag'])) {
-        switch ($php_forsearh['tag'][0]['table']) {
+    if (isset($php_forsearch['tag'])) {
+        switch ($php_forsearch['tag'][0]['table']) {
             case 'for_articles':
-                $get_article_where = "WHERE for_articles.url = '{$php_forsearh['tag'][0]['tag']}'
-									  AND for_articles.subtype = '{$php_forsearh['tag'][0]['object']}'";
+                $get_article_where = "WHERE for_articles.url = '{$php_forsearch['tag'][0]['tag']}'
+									  AND for_articles.subtype = '{$php_forsearch['tag'][0]['object']}'";
                 
                 break;
             case 'for_tags':
-                $get_tag_where = "WHERE for_tags.tag = '{$php_forsearh['tag'][0]['tag']}'
-								  AND for_tags.object = '{$php_forsearh['tag'][0]['object']}'";
+                $get_tag_where = "WHERE for_tags.tag = '{$php_forsearch['tag'][0]['tag']}'
+								  AND for_tags.object = '{$php_forsearch['tag'][0]['object']}'";
                 
                 break;
         }
@@ -118,8 +118,8 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
     $get_result_sql = "ORDER BY created DESC 
 					   LIMIT 100000;";
     
-    if (isset($php_forsearh['tag'])) {
-        switch ($php_forsearh['tag'][0]['table']) {
+    if (isset($php_forsearch['tag'])) {
+        switch ($php_forsearch['tag'][0]['table']) {
             case 'for_articles':
                 $get_search_sql = "{$get_article_sql}
 								   {$get_result_sql}";
@@ -139,8 +139,8 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
                 break;
         }
     } else {
-        if (isset($php_forsearh['table'])) {
-            switch ($php_forsearh['table']) {
+        if (isset($php_forsearch['table'])) {
+            switch ($php_forsearch['table']) {
                 case 'articles':
                     $get_search_sql = "{$get_article_sql}
 									   {$get_result_sql}";
