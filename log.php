@@ -1,5 +1,5 @@
 <?php
-include ('db.php');
+include ('../../forsecret/db.php');
 
 /**
  * GET will request last 100 results.

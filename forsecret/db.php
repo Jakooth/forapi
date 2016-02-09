@@ -1,7 +1,7 @@
 <?php
 $host = 'localhost';
 $user = 'root';
-$password = 'Secret123!';
+$password = 'password';
 $db = 'forplay';
 
 $link = mysqli_connect ( $host, $user, $password, $db );

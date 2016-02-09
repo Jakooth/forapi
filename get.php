@@ -1,5 +1,5 @@
 <?php
-include ('db.php');
+include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT tag_id FROM for_tags)";

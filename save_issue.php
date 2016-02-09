@@ -1,5 +1,5 @@
 <?php
-include ('db.php');
+include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'POST') {
     

@@ -1,5 +1,5 @@
 <?php
-include ('db.php');
+include ('../../forsecret/db.php');
 
 /**
  * GET will request last 100 results.
@@ -71,7 +71,7 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
 						   for_log.created,
 						   'for_tags' AS `table`
 					FROM for_tags
-					LEFT JOIN forplay.for_log
+					LEFT JOIN for_log
 					ON for_tags.tag = for_log.tag
 					AND for_tags.object = for_log.object
 					{$get_tag_where}
