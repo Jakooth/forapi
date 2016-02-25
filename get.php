@@ -3,6 +3,7 @@ include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT tag_id FROM for_tags)";
+    $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT tag FROM for_tags)";
     $get_genre_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT genre_id FROM for_genres)";
     $get_platform_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT platform_id FROM for_platforms)";
     $get_sticker_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT sticker_id FROM for_stickers)";
