@@ -3,7 +3,7 @@ include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT article_id FROM for_articles)";
-    $get_url = isset($_GET['url']) ? "{$_GET ['url']}" : "ANY (SELECT url FROM for_articles)";
+    $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT url FROM for_articles)";
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_articles)";
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_articles)";
     $get_issue = isset($_GET['issue']) ? "'{$_GET ['issue']}'" : false;
@@ -31,6 +31,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             IN ('news', 'video', 'review', 'feature') 
                             OR (subtype = 'aside' AND priority = 'aside'))
                             AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
+                            AND for_articles.`date` <= curdate()
                             ORDER BY date DESC;";
     }
     
