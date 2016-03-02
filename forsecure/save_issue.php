@@ -1,5 +1,5 @@
 <?php
-include ('../../forsecret/db.php');
+include ('../../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'POST') {
     
@@ -19,20 +19,18 @@ if (getenv('REQUEST_METHOD') == 'POST') {
      */
     
     if ($php_fortag_isupdate) {
-        $tag_sql = "UPDATE for_genres
+        $tag_sql = "UPDATE for_issues
                     SET `name` = '{$php_fortag['bgName']}',
-                        tag = '{$php_fortag['tag']}',
-                        `type` = '{$php_fortag['type']}'
-                    WHERE genre_id = {$php_fortag ['_saveId']};";
+                        tag = '{$php_fortag['tag']}'
+                    WHERE issue_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
     } else {
-        $tag_sql = "INSERT INTO for_genres
-                        (`name`, tag, `type`)
+        $tag_sql = "INSERT INTO for_issues
+                        (`name`, tag)
                     VALUES
                         ('{$php_fortag['bgName']}',
-                         '{$php_fortag['tag']}',
-                         '{$php_fortag['type']}');";
+                         '{$php_fortag['tag']}');";
         
         $events['mysql']['operation'] = 'insert';
     }
@@ -47,7 +45,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 					(`event`, `table`, tag, object, user, created, acknowledged)
 				VALUES
 					('{$events ['mysql'] ['operation']}',
-				 	 'for_genres',
+				 	 'for_issues',
 				 	 '{$php_fortag['tag']}',
 				 	 '{$php_fortag['object']}',
 				 	 0,

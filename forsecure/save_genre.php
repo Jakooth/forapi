@@ -1,5 +1,5 @@
 <?php
-include ('../../forsecret/db.php');
+include ('../../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'POST') {
     
@@ -14,27 +14,25 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $php_fortag_isupdate = isset($php_fortag['_saveId']);
     
     /**
-     * First query is to insert the tag.
+     * First query is to insert or update the tag.
      * Note name and type are private words in SQL.
      */
     
     if ($php_fortag_isupdate) {
-        $tag_sql = "UPDATE for_stickers
-	                SET `name` = '{$php_fortag['enName']}',
-	                    tag = '{$php_fortag['tag']}',
-	                    lib = '{$php_fortag['lib']}',
-	                    subtype = '{$php_fortag['subtype']}'
-	                WHERE sticker_id = {$php_fortag ['_saveId']};";
+        $tag_sql = "UPDATE for_genres
+                    SET `name` = '{$php_fortag['bgName']}',
+                        tag = '{$php_fortag['tag']}',
+                        `type` = '{$php_fortag['type']}'
+                    WHERE genre_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
     } else {
-        $tag_sql = "INSERT INTO for_stickers 
-				        (`name`, tag, lib, subtype)
-				    VALUES 
-    					('{$php_fortag['enName']}',
-    				 	 '{$php_fortag['tag']}',
-    					 '{$php_fortag['lib']}',
-    					 '{$php_fortag['subtype']}');";
+        $tag_sql = "INSERT INTO for_genres
+                        (`name`, tag, `type`)
+                    VALUES
+                        ('{$php_fortag['bgName']}',
+                         '{$php_fortag['tag']}',
+                         '{$php_fortag['type']}');";
         
         $events['mysql']['operation'] = 'insert';
     }
@@ -49,7 +47,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 					(`event`, `table`, tag, object, user, created, acknowledged)
 				VALUES
 					('{$events ['mysql'] ['operation']}',
-				 	 'for_stickers',
+				 	 'for_genres',
 				 	 '{$php_fortag['tag']}',
 				 	 '{$php_fortag['object']}',
 				 	 0,
@@ -70,6 +68,12 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $tag_result = mysqli_query($link, $tag_sql);
     $log_result = true;
     
+    /**
+     * Response values used to update later.
+     */
+    
+    $operation['saveId'] = null;
+    
     if (! $tag_result) {
         $events['mysql']['result'] = false;
         $events['mysql']['code'] = mysqli_errno($link);
@@ -82,7 +86,12 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          * Because we generate the values here and not from user input.
          */
         
-        $tag_last = mysqli_insert_id($link);
+        if ($php_fortag_isupdate) {
+            $tag_last = $php_fortag['_saveId'];
+        } else {
+            $tag_last = mysqli_insert_id($link);
+        }
+        
         $log_result = mysqli_query($link, $log_sql);
         
         if (! $log_result) {

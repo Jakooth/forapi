@@ -1,5 +1,5 @@
 <?php
-include ('../../forsecret/db.php');
+include ('../../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'POST') {
     
@@ -15,22 +15,22 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     /**
      * First query is to insert or update the tag.
-     * Note name is a private word in SQL.
+     * Note name and type are private words in SQL.
      */
     
     if ($php_fortag_isupdate) {
-        $tag_sql = "UPDATE for_platforms
-	                SET `name` = '{$php_fortag['enName']}',
-	                    tag = '{$php_fortag['tag']}'
-	                WHERE platform_id = {$php_fortag ['_saveId']};";
+        $tag_sql = "UPDATE for_countries
+                    SET `name` = '{$php_fortag['bgName']}',
+                        tag = '{$php_fortag['tag']}'
+                    WHERE country_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
     } else {
-        $tag_sql = "INSERT INTO for_platforms
-	                   (`name`, tag)
-	                VALUES
-	                   ('{$php_fortag['enName']}',
-	                    '{$php_fortag['tag']}');";
+        $tag_sql = "INSERT INTO for_countries
+                        (`name`, tag)
+                    VALUES
+                        ('{$php_fortag['bgName']}',
+                         '{$php_fortag['tag']}');";
         
         $events['mysql']['operation'] = 'insert';
     }
@@ -45,7 +45,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 					(`event`, `table`, tag, object, user, created, acknowledged)
 				VALUES
 					('{$events ['mysql'] ['operation']}',
-				 	 'for_platforms',
+				 	 'for_countries',
 				 	 '{$php_fortag['tag']}',
 				 	 '{$php_fortag['object']}',
 				 	 0,
