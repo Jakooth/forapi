@@ -40,6 +40,7 @@ $router->before('GET|POST', '(log.*|save.*)',
                 $events['auth0']['authorized'] = false;
                 $events['auth0']['api'] = true;
                 $events['auth0']['user'] = false;
+                $events['auth0']['message'] = 'No authorization header sent.';
                 
                 echo json_encode(
                         array(
@@ -75,6 +76,7 @@ $router->before('GET|POST', '(log.*|save.*)',
                 $events['auth0']['authorized'] = false;
                 $events['auth0']['api'] = true;
                 $events['auth0']['user'] = false;
+                $events['auth0']['message'] = 'Invalid token.';
                 
                 echo json_encode(
                         array(
@@ -97,6 +99,7 @@ $router->before('GET|POST', '(log.*|save.*)',
                 $events['auth0']['authorized'] = false;
                 $events['auth0']['api'] = true;
                 $events['auth0']['user'] = false;
+                $events['auth0']['message'] = 'Invalid user.';
                 
                 echo json_encode(
                         array(
@@ -118,6 +121,7 @@ $router->before('GET|POST', '(log.*|save.*)',
                 $events['auth0']['authorized'] = false;
                 $events['auth0']['api'] = true;
                 $events['auth0']['user'] = true;
+                $events['auth0']['message'] = 'No permissions.';
                 
                 echo json_encode(
                         array(
@@ -130,7 +134,7 @@ $router->before('GET|POST', '(log.*|save.*)',
 /**
  * These is the public API to get Forplay content.
  */
-$router->match('GET', '(get.*|search.*|forplay.*)', 
+$router->match('POST|GET', '(get.*|search.*|forplay.*)', 
         function  ()
         {
             global $events;
@@ -165,7 +169,7 @@ $router->set404(
             
             header('HTTP/1.1 404 Not Found');
             
-            $events['auth0']['method'] = true;
+            $events['auth0']['method'] = false;
             $events['auth0']['authorized'] = true;
             $events['auth0']['api'] = false;
             $events['auth0']['user'] = true;

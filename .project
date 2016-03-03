@@ -24,4 +24,11 @@
 	<natures>
 		<nature>org.eclipse.php.core.PHPNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>forsecret (root)</name>
+			<type>2</type>
+			<location>C:/Work/apache-httpd-2.4.16/forsecret</location>
+		</link>
+	</linkedResources>
 </projectDescription>
