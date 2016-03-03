@@ -709,7 +709,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 
                 $related_sql = "SELECT * 
                                 FROM for_rel_issues 
-                                WHERE article_id = $article_last";
+                                WHERE article_id = $article_last;";
                 
                 $related_result = mysqli_query($link, $related_sql);
                 
@@ -733,6 +733,16 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 if (! $related_result) {
                     goto end;
                 }
+            }
+        } else {
+            $related_sql = "DELETE FROM for_rel_issues
+                            WHERE article_id = $article_last
+                            LIMIT 1;";
+            
+            $related_result = mysqli_query($link, $related_sql);
+            
+            if (! $related_result) {
+                goto end;
             }
         }
         
