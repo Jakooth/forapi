@@ -48,7 +48,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 				 	 'for_countries',
 				 	 '{$php_fortag['tag']}',
 				 	 '{$php_fortag['object']}',
-				 	 0,
+				 	 '{$user['email']}',
 				 	 now(),
 				 	 null);";
     

@@ -54,8 +54,6 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
         $events['mysql']['result'] = true;
         
         while ($log = mysqli_fetch_assoc($get_log_result)) {
-            $log['user_name'] = 'Administrator';
-            
             $logs[] = $log;
         }
     }

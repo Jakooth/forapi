@@ -48,7 +48,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 				 	 'for_issues',
 				 	 '{$php_fortag['tag']}',
 				 	 '{$php_fortag['object']}',
-				 	 0,
+				 	 '{$user['email']}',
 				 	 now(),
 				 	 null);";
     

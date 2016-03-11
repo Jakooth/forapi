@@ -7,6 +7,7 @@ $db = '<--!forplay-->';
 $link = mysqli_connect($host, $user, $password, $db);
 
 Global $events;
+Global $user;
 
 $events = array();
 

@@ -10,17 +10,13 @@ require __DIR__ . '/../vendor/autoload.php';
 $router = new \Bramus\Router\Router();
 
 /**
- * Store user data here.
- */
-$user = null;
-
-/**
  * This to validate secure requests and set user permissions.
  */
-$router->before('GET|POST', '(log.*|save.*)', 
+$router->before('GET|POST', '(log.*|save.*|imgs.*)', 
         function  ()
         {
             global $events;
+            global $user;
             
             /**
              * Validate Apache authorization hader with token.
@@ -148,7 +144,7 @@ $router->match('POST|GET', '(get.*|search.*|forplay.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*)', 
+$router->match('POST|GET', '(log.*|save.*|imgs.*)', 
         function  ()
         {
             global $events;
