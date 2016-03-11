@@ -146,7 +146,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 					 'for_articles',
 					 '{$php_forarticle['url']}',
 					 '{$php_forarticle['subtype']}',
-					 0,
+					 '{$user['email']}',
 					 now(),
 					 null);";
     
