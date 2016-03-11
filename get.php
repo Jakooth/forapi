@@ -4,25 +4,40 @@ include ('../../forsecret/db.php');
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT tag_id FROM for_tags)";
     $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT tag FROM for_tags)";
-    $get_genre_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT genre_id FROM for_genres)";
-    $get_platform_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT platform_id FROM for_platforms)";
-    $get_sticker_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT sticker_id FROM for_stickers)";
     $get_object = isset($_GET['object']) ? "'{$_GET ['object']}'" : "ANY (SELECT object FROM for_tags)";
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_tags) OR `type` IS NULL";
-    $get_genre_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_genres) OR `type` IS NULL";
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_tags) OR subtype IS NULL";
     $get_order = isset($_GET['object']) ? "tag_id DESC" : "tag ASC";
+    
+    switch ($get_object) {
+        case "'sticker'":
+            $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT sticker_id FROM for_stickers)";
+            $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT tag FROM for_stickers)";
+            
+            break;
+        case "'platform'":
+            $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT platform_id FROM for_platforms)";
+            $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT tag FROM for_platforms)";
+            
+            break;
+        case "'genre'":
+            $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT genre_id FROM for_genres)";
+            $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT tag FROM for_genres)";
+            $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_genres) OR `type` IS NULL";
+            
+            break;
+    }
     
     /**
      * TODO: At some point this limit can cause issues.
      */
     
     $get_tag_sql = "SELECT * FROM for_tags 
-					WHERE tag_id = {$get_tag}
-    				AND (`type` = {$get_type})
-    				AND (subtype = {$get_subtype})
-    				AND object = {$get_object}
-    				ORDER BY {$get_order}
+					WHERE tag_id = $get_tag
+    				AND (`type` = $get_type)
+    				AND (subtype = $get_subtype)
+    				AND object = $get_object
+    				ORDER BY $get_order
     				LIMIT 100000;";
     
     /**
@@ -38,7 +53,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                        for_games.us_date FROM for_tags
 								LEFT JOIN for_games
 							   	ON for_tags.tag_id = for_games.tag_id
-							   	WHERE for_tags.tag_id = {$get_tag}
+							   	WHERE for_tags.tag_id = $get_tag
 							   	GROUP BY tag_id;";
                 
                 break;
@@ -48,7 +63,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                        for_movies.time FROM for_tags
                                 LEFT JOIN for_movies
                                 ON for_tags.tag_id = for_movies.tag_id
-                                WHERE for_tags.tag_id = {$get_tag}
+                                WHERE for_tags.tag_id = $get_tag
                                 GROUP BY tag_id;";
                 
                 break;
@@ -58,7 +73,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                 for_events.city FROM for_tags
                                 LEFT JOIN for_events
                                 ON for_tags.tag_id = for_events.tag_id
-                                WHERE for_tags.tag_id = {$get_tag}
+                                WHERE for_tags.tag_id = $get_tag
                                 GROUP BY tag_id;";
                 
                 break;
@@ -75,7 +90,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         $get_related_sql = "SELECT for_tags.*, for_rel_relative.related_subtype FROM for_tags
 							LEFT JOIN for_rel_relative 
 							ON for_tags.tag_id = for_rel_relative.related_tag_id
-							WHERE for_rel_relative.tag_id = {$get_tag}
+							WHERE for_rel_relative.tag_id = $get_tag
 							AND (for_rel_relative.related_subtype = 'relation' OR
 							     for_rel_relative.related_subtype = 'serie' OR
 							     for_rel_relative.related_subtype = 'publisher' OR
@@ -100,7 +115,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                      FROM for_stickers
         							 LEFT JOIN for_rel_relative
         							 ON for_stickers.sticker_id = for_rel_relative.related_tag_id
-        							 WHERE for_rel_relative.tag_id = {$get_tag}
+        							 WHERE for_rel_relative.tag_id = $get_tag
         							 AND for_rel_relative.related_subtype = 'sticker'
         							 GROUP BY sticker_id;";
         
@@ -108,7 +123,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                       FROM for_platforms
         							  LEFT JOIN for_rel_relative
         							  ON for_platforms.platform_id = for_rel_relative.related_tag_id
-        							  WHERE for_rel_relative.tag_id = {$get_tag}
+        							  WHERE for_rel_relative.tag_id = $get_tag
         							  AND for_rel_relative.related_subtype = 'platform'
         							  GROUP BY platform_id;";
         
@@ -116,7 +131,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                    FROM for_genres
         						   LEFT JOIN for_rel_relative
         						   ON for_genres.genre_id = for_rel_relative.related_tag_id
-        						   WHERE for_rel_relative.tag_id = {$get_tag}
+        						   WHERE for_rel_relative.tag_id = $get_tag
         						   AND for_rel_relative.related_subtype = 'genre'
         						   GROUP BY genre_id;";
         
@@ -124,12 +139,12 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                     FROM for_countries
         						    LEFT JOIN for_rel_relative
         						    ON for_countries.country_id = for_rel_relative.related_tag_id
-        						    WHERE for_rel_relative.tag_id = {$get_tag}
+        						    WHERE for_rel_relative.tag_id = $get_tag
         						    AND for_rel_relative.related_subtype = 'country'
         						    GROUP BY country_id;";
         
         $get_related_tracks_sql = "SELECT * FROM for_tracks
-                                   WHERE tag_id = {$get_tag}
+                                   WHERE tag_id = $get_tag
                                    ORDER BY `order`;";
     }
     
@@ -138,14 +153,16 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                               tag,
                               type
                        FROM for_genres 
-					   WHERE genre_id = {$get_genre_tag} 
-                       AND `type` = {$get_genre_type};";
+					   WHERE genre_id = $get_tag
+					   AND (`type` = $get_type)
+					   AND (tag = $get_url);";
     
     $get_platforms_sql = "SELECT platform_id AS tag_id,
                                  name AS en_name,
                                  tag
                           FROM for_platforms
-                          WHERE platform_id = {$get_platform_tag}
+                          WHERE platform_id = $get_tag
+                          AND (tag = $get_url)
                           ORDER BY name;";
     
     $get_stickers_sql = "SELECT sticker_id AS tag_id,
@@ -154,7 +171,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                 lib,
                                 subtype
                          FROM for_stickers
-                         WHERE sticker_id = {$get_sticker_tag}
+                         WHERE sticker_id = $get_tag
+                         AND (tag = $get_url)
                          ORDER BY tag;";
     
     $get_issues_sql = "SELECT issue_id, 
