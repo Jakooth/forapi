@@ -38,7 +38,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     /**
      * Second thing we want to log the changes.
      * This is done so the admin can review recent updates.
-     * TODO: Until we have user authentication 0 will equal admin.
      */
     
     $log_sql = "INSERT INTO for_log
