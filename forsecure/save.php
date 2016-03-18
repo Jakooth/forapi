@@ -20,6 +20,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $php_fortag_enname = isset($php_fortag['enName']) ? "'{$php_fortag ['enName']}'" : "null";
     $php_fortag_date = isset($php_fortag['date']) ? "'{$php_fortag ['date']}'" : "null";
     $php_fortag_subtype = isset($php_fortag['subtype']) ? "'{$php_fortag ['subtype']}'" : "null";
+    $php_fortag_img = isset($php_fortag['img']) ? "'{$php_fortag ['img']}'" : "'jpg'";
     $php_fortag_isupdate = isset($php_fortag['_saveId']);
     
     /**
@@ -51,7 +52,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						`date`	= $php_fortag_date,
 						`type`  = '{$php_fortag['type']}',
 						subtype = $php_fortag_subtype,
-						object  = '{$php_fortag['object']}'
+						object  = '{$php_fortag['object']}',
+						img = $php_fortag_img
 					WHERE tag_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
@@ -63,7 +65,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          */
         
         $tag_sql = "INSERT INTO for_tags
-						(bg_name, en_name, tag, `date`, `type`, subtype, object)
+						(bg_name, en_name, tag, `date`, `type`, subtype, object, img)
 					VALUES
 						($php_fortag_bgname,
 						 $php_fortag_enname,
@@ -71,7 +73,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						 $php_fortag_date,
 						 '{$php_fortag['type']}',
 						 $php_fortag_subtype,
-						 '{$php_fortag['object']}');";
+						 '{$php_fortag['object']}',
+                         $php_fortag_img);";
         
         $events['mysql']['operation'] = 'insert';
     }
@@ -79,7 +82,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     /**
      * Second thing we want to log the changes.
      * This is done so the admin can review recent updates.
-     * TODO: Until we have user authentication 0 will equal admin.
      */
     
     $log_sql = "INSERT INTO for_log
