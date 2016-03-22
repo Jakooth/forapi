@@ -2,7 +2,41 @@
 include ('../../../forsecret/db.php');
 require_once ('../phplib/php-image-magician/php_image_magician.php');
 
-if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
+if (getenv('REQUEST_METHOD') == 'GET') {
+    $root = "C:\\Work\\apache-httpd-2.4.16\\htdocs\\forplay";
+    $folder = "$root\\assets\\articles\\{$_GET['tag']}";
+    
+    /**
+     * Check if driectory exists.
+     */
+    
+    if (! file_exists($folder)) {
+        mkdir($folder);
+    }
+    
+    /**
+     * List files to get the last index.
+     * Note it will always return '.' and '..'.
+     * Also it will return _extras folder.
+     */
+    
+    $files = scandir($folder, 1);
+    
+    /**
+     * Send the response back to the browser in JSON format.
+     * And finally close the connection.
+     */
+    
+    echo json_encode(
+            array(
+                    'events' => $events,
+                    'imgs' => $files
+            ));
+    
+    mysqli_close($link);
+}
+
+if (getenv('REQUEST_METHOD') == 'POST') {
     $root = "C:\\Work\\apache-httpd-2.4.16\\htdocs\\forplay";
     $folder = "$root\\assets\\articles";
     $file = "";
@@ -57,6 +91,7 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
             
             /**
              * Note it will always return '.' and '..'.
+             * Also it will return _extras folder.
              * Start the idnex from 0 and increment.
              * If the increment is more than 99 + 2, clean up it manually.
              * TODO: Check for gaps in the index and try to solve automatically.
