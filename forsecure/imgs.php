@@ -2,8 +2,33 @@
 include ('../../../forsecret/db.php');
 require_once ('../phplib/php-image-magician/php_image_magician.php');
 
+if (getenv('REQUEST_METHOD') == 'DELETE') {
+    /**
+     * In verison 5.6 of PHP ajax calls are no longer in POST.
+     * The request is POST but variables are stored in php://input.
+     */
+    
+    $json_forimg = file_get_contents("php://input");
+    $php_forimg = json_decode($json_forimg, true);
+    
+    $folder = "$root\\assets\\articles\\{$php_forimg['tag']}";
+    $file = "$folder\\{$php_forimg['img']}";
+    
+    unlink($file);
+    
+    /**
+     * Send the response back to the browser in JSON format.
+     * And finally close the connection.
+     */
+    
+    echo json_encode(array(
+            'events' => $events
+    ));
+    
+    mysqli_close($link);
+}
+
 if (getenv('REQUEST_METHOD') == 'GET') {
-    $root = "C:\\Work\\apache-httpd-2.4.16\\htdocs\\forplay";
     $folder = "$root\\assets\\articles\\{$_GET['tag']}";
     
     /**
@@ -37,7 +62,6 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 }
 
 if (getenv('REQUEST_METHOD') == 'POST') {
-    $root = "C:\\Work\\apache-httpd-2.4.16\\htdocs\\forplay";
     $folder = "$root\\assets\\articles";
     $file = "";
     $mime = explode("/", $_FILES['img']['type']);
@@ -54,8 +78,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     if ($_FILES['img']['size'] <= 0) {
         $events['upload']['img'] = false;
-        $events['upload']['error'] = 'Images must be less than 2MB.' .
-                 'Resize it to no more than 1920x1920 or compress it using Photoshop Save for Web feature.' .
+        $events['upload']['error'] = 'Images must be less than 2MB. ' .
+                 'Resize it to no more than 1920x1920 and compress it using Photoshop Save for Web feature. ' .
                  'Set JPG quality to 100% or use PNG-24 format.';
         
         goto end;
@@ -63,8 +87,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     if ($mime != 'png' && $mime != 'jpg') {
         $events['upload']['img'] = false;
-        $events['upload']['error'] = 'Images must in JPG or PNG format.' .
-                 'Convert it using Photoshop Save for Web feature.' .
+        $events['upload']['error'] = 'Images must in JPG or PNG format. ' .
+                 'Convert it using Photoshop Save for Web feature. ' .
                  'Set JPG quality to 100% or use PNG-24 format.';
         
         goto end;
@@ -208,8 +232,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             break;
         case 'tag':
             $folder = "$root\\assets\\tags";
-            $file = "$folder\\{$_POST['path']}.$mime";
             
+            $file = "$folder\\{$_POST['path']}.$mime";
             move_uploaded_file($_FILES['img']['tmp_name'], $file);
             
             /**
@@ -255,6 +279,59 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             break;
         case 'caret':
+            $folder = "$root\\assets\\articles\\{$_POST['path']}\\_extras";
+            $file = "$folder\\{$_POST['path']}-{$_POST['type']}.$mime";
+            
+            /**
+             * Check if driectory exists.
+             */
+            
+            if (! file_exists($folder)) {
+                mkdir($folder);
+            }
+            
+            move_uploaded_file($_FILES['img']['tmp_name'], $file);
+            
+            /**
+             * Now do the image resize and conversion.
+             */
+            
+            $magic = new imageLib($file);
+            $w = $magic->getOriginalWidth();
+            $h = $magic->getOriginalHeight();
+            
+            if (($w == '512' && $h == '512')) {
+                goto end;
+            }
+            
+            $magic->resizeImage(512, 512, 'crop');
+            $magic->saveImage($file, 100);
+            
+            /**
+             * Insert activity log event for images which are resized.
+             */
+            
+            $log_sql = "INSERT INTO for_log
+                            (`event`, `table`, tag, object, user, created, acknowledged)
+                        VALUES
+                            ('upload',
+                            'extras',
+                            '{$_POST['path']}.$mime',
+                            '{$_POST['type']}',
+                            '{$user['email']}',
+                            now(),
+                            null);";
+            
+            $log_result = mysqli_query($link, $log_sql);
+            
+            if (! $log_result) {
+                $events['mysql']['result'] = false;
+                $events['mysql']['code'] = mysqli_errno($link);
+                $events['mysql']['error'] = mysqli_error($link);
+                
+                goto end;
+            }
+            
             break;
         case 'game':
         case 'movie':
@@ -279,7 +356,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             /**
              * Now do the image resize and conversion.
-             * 128x128 for a tag image.
              */
             
             $magic = new imageLib($file);

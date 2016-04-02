@@ -8,8 +8,10 @@ $link = mysqli_connect($host, $user, $password, $db);
 
 Global $events;
 Global $user;
+Global $root;
 
 $events = array();
+$root = "C:\\Work\\apache-httpd-2.4.16\\htdocs\\forplay";
 
 if (mysqli_connect_errno()) {
     $events['mysql'] = array(
