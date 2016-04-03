@@ -32,14 +32,6 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $folder = "$root\\assets\\articles\\{$_GET['tag']}";
     
     /**
-     * Check if driectory exists.
-     */
-    
-    if (! file_exists($folder)) {
-        mkdir($folder);
-    }
-    
-    /**
      * List files to get the last index.
      * Note it will always return '.' and '..'.
      * Also it will return _extras folder.
