@@ -35,9 +35,14 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * List files to get the last index.
      * Note it will always return '.' and '..'.
      * Also it will return _extras folder.
+     * If the directory does not exists retunr empty array.
      */
     
-    $files = scandir($folder, 1);
+    if (! file_exists($folder)) {
+        $files = array();
+    } else {
+        $files = scandir($folder, 1);
+    }
     
     /**
      * Send the response back to the browser in JSON format.

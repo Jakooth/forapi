@@ -31,7 +31,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             IN ('news', 'video', 'review', 'feature') 
                             OR (subtype = 'aside' AND priority = 'aside'))
                             AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
-                            AND for_articles.`date` <= curdate()
+                            AND for_articles.`date` <= now()
                             ORDER BY date DESC;";
     }
     
