@@ -18,6 +18,9 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * This will exclude some quotes and carets without priority.
      * TODO: Provide code for getting specific issue:
      * WHERE and MAX need to be variables.
+     * TODO: Get articles with limit. Now we return all,
+     * but soon or later this will be performance issue.
+     * Adjust this to auto-load after 100 rsults.
      */
     
     if (count($_GET) <= 0 || $get_issue) {
@@ -30,9 +33,14 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             WHERE (subtype 
                             IN ('news', 'video', 'review', 'feature') 
                             OR (subtype = 'aside' AND priority = 'aside'))
-                            AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
+                            
                             AND for_articles.`date` <= now()
                             ORDER BY date DESC;";
+        
+        /**
+         * This is the backup for getting the latest issue:
+         * AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
+         */
     }
     
     /**
