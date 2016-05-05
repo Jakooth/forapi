@@ -3,6 +3,7 @@ include ('../../../forsecret/db.php');
 require_once ('../phplib/php-image-magician/php_image_magician.php');
 
 if (getenv('REQUEST_METHOD') == 'DELETE') {
+    
     /**
      * In verison 5.6 of PHP ajax calls are no longer in POST.
      * The request is POST but variables are stored in php://input.
@@ -11,8 +12,8 @@ if (getenv('REQUEST_METHOD') == 'DELETE') {
     $json_forimg = file_get_contents("php://input");
     $php_forimg = json_decode($json_forimg, true);
     
-    $folder = "$root\\assets\\articles\\{$php_forimg['tag']}";
-    $file = "$folder\\{$php_forimg['img']}";
+    $folder = "$root/assets/articles/{$php_forimg['tag']}";
+    $file = "$folder/{$php_forimg['img']}";
     
     unlink($file);
     
@@ -29,7 +30,7 @@ if (getenv('REQUEST_METHOD') == 'DELETE') {
 }
 
 if (getenv('REQUEST_METHOD') == 'GET') {
-    $folder = "$root\\assets\\articles\\{$_GET['tag']}";
+    $folder = "$root/assets/articles/{$_GET['tag']}";
     
     /**
      * List files to get the last index.
@@ -59,7 +60,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 }
 
 if (getenv('REQUEST_METHOD') == 'POST') {
-    $folder = "$root\\assets\\articles";
+    $folder = "$root/assets/articles";
     $file = "";
     $mime = explode("/", $_FILES['img']['type']);
     $extension = array_pop($mime);
@@ -75,7 +76,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     if ($_FILES['img']['size'] <= 0) {
         $events['upload']['img'] = false;
-        $events['upload']['error'] = 'Images must be less than 2MB. ' .
+        $events['upload']['error'] = 'Image is too big. ' .
                  'Resize it to no more than 1920x1920 and compress it using Photoshop Save for Web feature. ' .
                  'Set JPG quality to 100% or use PNG-24 format.';
         
@@ -93,7 +94,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     switch ($_POST['type']) {
         case 'shot':
-            $folder = "$root\\assets\\articles\\{$_POST['path']}";
+            $folder = "$root/assets/articles/{$_POST['path']}";
             $file = "";
             
             /**
@@ -126,7 +127,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             }
             
             if (sizeof($files) <= 2) {
-                $file = "$folder\\{$_POST['path']}-01.$mime";
+                $file = "$folder/{$_POST['path']}-01.$mime";
             } else {
                 $i = intval(array_pop((explode("-", $files[0]))));
                 
@@ -136,7 +137,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     $i = "0$i";
                 }
                 
-                $file = "$folder\\{$_POST['path']}-$i.$mime";
+                $file = "$folder/{$_POST['path']}-$i.$mime";
             }
             
             move_uploaded_file($_FILES['img']['tmp_name'], $file);
@@ -228,9 +229,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             break;
         case 'tag':
-            $folder = "$root\\assets\\tags";
+            $folder = "$root/assets/tags";
             
-            $file = "$folder\\{$_POST['path']}.$mime";
+            $file = "$folder/{$_POST['path']}.$mime";
             move_uploaded_file($_FILES['img']['tmp_name'], $file);
             
             /**
@@ -276,12 +277,17 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             break;
         case 'caret':
-            $folder = "$root\\assets\\articles\\{$_POST['path']}\\_extras";
-            $file = "$folder\\{$_POST['path']}-{$_POST['type']}.$mime";
+            $tagFolder = "$root/assets/articles/{$_POST['path']}";
+            $folder = "$root/assets/articles/{$_POST['path']}/_extras";
+            $file = "$folder/{$_POST['path']}-{$_POST['type']}.$mime";
             
             /**
              * Check if driectory exists.
              */
+            
+            if (! file_exists($tagFolder)) {
+                mkdir($tagFolder);
+            }
             
             if (! file_exists($folder)) {
                 mkdir($folder);
@@ -337,13 +343,18 @@ if (getenv('REQUEST_METHOD') == 'POST') {
         case 'album':
         case 'book':
         case 'board':
-            $folder = "$root\\assets\\articles\\{$_POST['path']}\\_extras";
-            $file = "$folder\\{$_POST['path']}-{$_POST['subtype']}.$mime";
-            $convertFile = "$folder\\{$_POST['path']}-{$_POST['subtype']}.jpg";
+            $tagFolder = "$root/assets/articles/{$_POST['path']}";
+            $folder = "$root/assets/articles/{$_POST['path']}/_extras";
+            $file = "$folder/{$_POST['path']}-{$_POST['subtype']}.$mime";
+            $convertFile = "$folder/{$_POST['path']}-{$_POST['subtype']}.jpg";
             
             /**
              * Check if driectory exists.
              */
+
+            if (! file_exists($tagFolder)) {
+                mkdir($tagFolder);
+            }
             
             if (! file_exists($folder)) {
                 mkdir($folder);
