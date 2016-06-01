@@ -8,6 +8,13 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_articles)";
     $get_issue = isset($_GET['issue']) ? "'{$_GET ['issue']}'" : false;
     
+    /**
+     * This is the pagination to lazy load articles.
+     * By default we start from the first result.
+     */
+    
+    $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : 0;
+    
     $get_article_sql = "SELECT * FROM for_articles 
 						WHERE article_id = $get_tag
 	                    AND (url = $get_url)
@@ -18,12 +25,9 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * This will exclude some quotes and carets without priority.
      * TODO: Provide code for getting specific issue:
      * WHERE and MAX need to be variables.
-     * TODO: Get articles with limit. Now we return all,
-     * but soon or later this will be performance issue.
-     * Adjust this to auto-load after 100 rsults.
      */
     
-    if (count($_GET) <= 0 || $get_issue) {
+    if (count($_GET) <= 0 || $get_issue || $get_offset >= 0) {
         $get_article_sql = "SELECT for_articles.*, 
                                    for_issues.`name` AS issue, 
                                    for_issues.tag AS issue_tag 
@@ -32,10 +36,10 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             INNER JOIN for_issues ON for_issues.issue_id = for_rel_issues.issue_id
                             WHERE (subtype 
                             IN ('news', 'video', 'review', 'feature') 
-                            OR (subtype = 'aside' AND priority = 'aside'))
-                            
+                            OR (subtype = 'aside' AND priority = 'aside')) 
                             AND for_articles.`date` <= now()
-                            ORDER BY date DESC;";
+                            ORDER BY date DESC
+                            LIMIT 50 OFFSET $get_offset;";
         
         /**
          * This is the backup for getting the latest issue:
