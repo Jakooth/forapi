@@ -13,7 +13,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * By default we start from the first result.
      */
     
-    $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : 0;
+    $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : -1;
     
     $get_article_sql = "SELECT * FROM for_articles 
 						WHERE article_id = $get_tag

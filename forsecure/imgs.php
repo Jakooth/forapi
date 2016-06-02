@@ -96,6 +96,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
         case 'shot':
             $folder = "$root/assets/articles/{$_POST['path']}";
             $file = "";
+            $i = "01";
             
             /**
              * Check if driectory exists.
