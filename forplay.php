@@ -14,6 +14,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      */
     
     $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : -1;
+    $get_limit = isset($_GET['limit']) ? "{$_GET ['limit']}" : 50;
     
     $get_article_sql = "SELECT * FROM for_articles 
 						WHERE article_id = $get_tag
@@ -39,7 +40,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             OR (subtype = 'aside' AND priority = 'aside')) 
                             AND for_articles.`date` <= now()
                             ORDER BY date DESC
-                            LIMIT 50 OFFSET $get_offset;";
+                            LIMIT $get_limit OFFSET $get_offset;";
         
         /**
          * This is the backup for getting the latest issue:
