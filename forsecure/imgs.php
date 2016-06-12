@@ -180,7 +180,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             }
             
             if ($w / $h == 1.6) {
-                if ($w >= 1680 && $w >= 1440) {
+                if ($w >= 1440) {
                     $magic->resizeImage(1680, 1050, 'crop');
                 }
                 
@@ -188,7 +188,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     $magic->resizeImage(1280, 720, 'crop');
                 }
             } else {
-                if ($w >= 1920 && $w >= 1600) {
+                if ($w >= 1600) {
                     $magic->resizeImage(1920, 1080, 'crop');
                 }
                 
