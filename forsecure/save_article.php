@@ -457,14 +457,28 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                         }
                         
                         /**
+                         * Get images for this layout.
+                         */
+                        
+                        $img_sql = "SELECT * FROM for_rel_imgs
+                                    WHERE layout_id = {$php_forarticle ['_saveLayouts'] [$key]};";
+                        
+                        $img_result = mysqli_query($link, $img_sql);
+                        
+                        if ($img_result) {
+                            $saveImgsCount = mysqli_num_rows($img_result);
+                        } else {
+                            $saveImgsCount = 0;
+                        }
+                        
+                        /**
                          * Delete imgs.
+                         * In case we replace image with text layout DELETE
+                         * all previous images associated with the layout.
                          */
                         
                         if (isset($layout['imgs'])) {
-                            if (isset($layout['_saveImgs'])) {
-                                $saveImgsCount = $layout['_saveImgs'];
-                                $imgsCount = count($imgs_arr);
-                            }
+                            $imgsCount = count($imgs_arr);
                             
                             if ($saveImgsCount > $imgsCount) {
                                 for ($j = $imgsCount; $j < $saveImgsCount; $j ++) {
@@ -478,6 +492,15 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                         goto end;
                                     }
                                 }
+                            }
+                        } else {
+                            $img_sql = "DELETE FROM for_rel_imgs
+                                        WHERE layout_id = {$php_forarticle ['_saveLayouts'] [$key]};";
+                            
+                            $img_result = mysqli_query($link, $img_sql);
+                            
+                            if (! $img_result) {
+                                goto end;
                             }
                         }
                         
@@ -509,8 +532,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                  * The goal is to avoid temporary duplicates.
                                  */
                                 
-                                if (isset($layout['_saveImgs'])) {
-                                    if ($imgKey < $layout['_saveImgs']) {
+                                if ($saveImgsCount > 0) {
+                                    if ($imgKey < $saveImgsCount) {
                                         $img_sql = "UPDATE for_rel_imgs
                                                     SET article_id = {$php_forarticle ['_saveId']},
                                                         layout_id = -{$php_forarticle ['_saveLayouts'] [$key]},
