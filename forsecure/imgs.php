@@ -352,7 +352,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             /**
              * Check if driectory exists.
              */
-
+            
             if (! file_exists($tagFolder)) {
                 mkdir($tagFolder);
             }
@@ -372,7 +372,15 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             $h = $magic->getOriginalHeight();
             
             switch ($_POST['subtype']) {
+                case 'ps3':
+                    if (($w == '445' && $h == '512')) {
+                        goto end;
+                    }
+                    
+                    $magic->resizeImage(445, 512, 'crop');
+                    break;
                 case 'ps4':
+                case 'one':
                     if (($w == '410' && $h == '512')) {
                         goto end;
                     }
@@ -392,8 +400,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     }
                     
                     $magic->resizeImage(356, 512, 'crop');
-                    break;
-                    $magic->resizeImage(128, 128, 'crop');
                 case 'poster':
                 case 'cover':
                     if ($_POST['type'] == 'album') {
@@ -403,7 +409,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                         
                         $magic->resizeImage(512, 512, 'crop');
                     } else {
-                        
                         if (($w == '345' && $h == '512')) {
                             goto end;
                         }
