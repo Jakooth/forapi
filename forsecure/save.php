@@ -18,6 +18,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     $php_fortag_bgname = isset($php_fortag['bgName']) ? "'{$php_fortag ['bgName']}'" : "null";
     $php_fortag_enname = isset($php_fortag['enName']) ? "'{$php_fortag ['enName']}'" : "null";
+    $php_fortag_site = isset($php_fortag['site']) ? "'{$php_fortag ['site']}'" : "null";
     $php_fortag_date = isset($php_fortag['date']) ? "'{$php_fortag ['date']}'" : "null";
     $php_fortag_subtype = isset($php_fortag['subtype']) ? "'{$php_fortag ['subtype']}'" : "null";
     $php_fortag_img = isset($php_fortag['img']) ? "'{$php_fortag ['img']}'" : "'jpg'";
@@ -53,7 +54,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						`type`  = '{$php_fortag['type']}',
 						subtype = $php_fortag_subtype,
 						object  = '{$php_fortag['object']}',
-						img = $php_fortag_img
+						img = $php_fortag_img,
+						site = $php_fortag_site
 					WHERE tag_id = {$php_fortag ['_saveId']};";
         
         $events['mysql']['operation'] = 'update';
@@ -65,7 +67,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
          */
         
         $tag_sql = "INSERT INTO for_tags
-						(bg_name, en_name, tag, `date`, `type`, subtype, object, img)
+						(bg_name, en_name, tag, `date`, `type`, subtype, object, img, site)
 					VALUES
 						($php_fortag_bgname,
 						 $php_fortag_enname,
@@ -74,7 +76,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						 '{$php_fortag['type']}',
 						 $php_fortag_subtype,
 						 '{$php_fortag['object']}',
-                         $php_fortag_img);";
+                         $php_fortag_img
+                         $php_fortag_site);";
         
         $events['mysql']['operation'] = 'insert';
     }
