@@ -76,7 +76,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 						 '{$php_fortag['type']}',
 						 $php_fortag_subtype,
 						 '{$php_fortag['object']}',
-                         $php_fortag_img
+                         $php_fortag_img,
                          $php_fortag_site);";
         
         $events['mysql']['operation'] = 'insert';
