@@ -12,7 +12,7 @@ $router = new \Bramus\Router\Router();
 /**
  * This to validate secure requests and set user permissions.
  */
-$router->before('GET|POST', '(log.*|save.*|imgs.*)', 
+$router->before('GET|POST', '(log.*|save.*|imgs.*|google.*)', 
         function  ()
         {
             global $events;
@@ -130,7 +130,7 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*)',
 /**
  * These is the public API to get Forplay content.
  */
-$router->match('POST|GET', '(get.*|search.*|forplay.*)', 
+$router->match('POST|GET', '(get.*|search.*|forplay.*|google.*)', 
         function  ()
         {
             global $events;
@@ -144,7 +144,7 @@ $router->match('POST|GET', '(get.*|search.*|forplay.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*|imgs.*)', 
+$router->match('POST|GET', '(log.*|save.*|imgs.*|sitemap.*)', 
         function  ()
         {
             global $events;
