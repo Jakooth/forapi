@@ -2,7 +2,7 @@
 include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
-    $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT article_id FROM for_articles)";
+    $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT for_articles.article_id FROM for_articles)";
     $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT url FROM for_articles)";
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_articles)";
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_articles)";
@@ -13,14 +13,26 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * By default we start from the first result.
      */
     
-    $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : -1;
+    $get_offset = isset($_GET['offset']) ? "{$_GET ['offset']}" : 0;
     $get_limit = isset($_GET['limit']) ? "{$_GET ['limit']}" : 50;
     
-    $get_article_sql = "SELECT * FROM for_articles 
-						WHERE article_id = $get_tag
+    /**
+     * TODO: What is the difference now between the two queries?
+     */
+    
+    $get_article_sql = "SELECT for_articles.*, 
+                               for_issues.`name` AS issue, 
+                               for_issues.tag AS issue_tag 
+                        FROM for_articles
+                        INNER JOIN for_rel_issues ON for_articles.article_id = for_rel_issues.article_id
+                        INNER JOIN for_issues ON for_issues.issue_id = for_rel_issues.issue_id 
+						WHERE for_articles.article_id = $get_tag
 	                    AND (url = $get_url)
     					AND (`type` = $get_type)
-    					AND (subtype = $get_subtype);";
+    					AND (subtype = $get_subtype)
+    					AND for_articles.`date` <= now()
+                        ORDER BY date DESC
+                        LIMIT $get_limit OFFSET $get_offset;";
     
     /**
      * This will exclude some quotes and carets without priority.
@@ -28,7 +40,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * WHERE and MAX need to be variables.
      */
     
-    if (count($_GET) <= 0 || $get_issue || $get_offset >= 0) {
+    if (count($_GET) <= 0 || $get_issue || (count($_GET) == 1 &&
+             isset($_GET['offset']) && ! isset($_GET['tag']))) {
         $get_article_sql = "SELECT for_articles.*, 
                                    for_issues.`name` AS issue, 
                                    for_issues.tag AS issue_tag 
@@ -41,11 +54,12 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                             AND for_articles.`date` <= now()
                             ORDER BY date DESC
                             LIMIT $get_limit OFFSET $get_offset;";
-        
-        /**
-         * This is the backup for getting the latest issue:
-         * AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM for_rel_issues)
-         */
+    
+    /**
+     * This is the backup for getting the latest issue:
+     * AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM
+     * for_rel_issues)
+     */
     }
     
     /**
@@ -99,9 +113,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     }
     
     while ($article = mysqli_fetch_assoc($get_article_result)) {
-        if ($article['subtype'] == 'review' || 
-            $article['subtype'] == 'video') {
-                
+        if ($article['subtype'] == 'review' || $article['subtype'] == 'video') {
+            
             $get_better_sql = "SELECT for_tags.*
                                FROM for_tags
                                WHERE tag_id = {$article['better']};";
@@ -203,9 +216,9 @@ if (getenv('REQUEST_METHOD') == 'GET') {
          * To display the aside info the id of the platform is not enough.
          */
         
-        if ($articles[0]['subtype'] == 'review' || 
-            $articles[0]['subtype'] == 'video') {
-                
+        if ($articles[0]['subtype'] == 'review' ||
+                 $articles[0]['subtype'] == 'video') {
+            
             $get_platform_sql = "SELECT for_platforms.*
                                  FROM for_platforms
                                  WHERE platform_id = {$articles[0]['platform']};";
@@ -289,6 +302,12 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         }
         
         while ($issue = mysqli_fetch_assoc($get_issue_result)) {
+            
+            /**
+             * Reset this to array and push all info about the issue.
+             */
+            
+            $articles[0]['issue'] = array();
             $articles[0]['issue'][] = $issue;
         }
     }
