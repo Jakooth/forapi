@@ -46,7 +46,7 @@ if (isset($php_fortag['developer'])) {
 }
 
 /**
- * MOVIE
+ * MOVIE, TV
  */
 
 if (isset($php_fortag['cast'])) {
@@ -67,6 +67,14 @@ if (isset($php_fortag['camera'])) {
 
 if (isset($php_fortag['music'])) {
     $related_arr = array_merge($related_arr, $php_fortag['music']);
+}
+
+if (isset($php_fortag['stars'])) {
+    $related_arr = array_merge($related_arr, $php_fortag['stars']);
+}
+
+if (isset($php_fortag['characters'])) {
+    $related_arr = array_merge($related_arr, $php_fortag['characters']);
 }
 
 /**

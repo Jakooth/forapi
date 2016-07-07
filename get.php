@@ -67,6 +67,17 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                                 GROUP BY tag_id;";
                 
                 break;
+            case 'tv':
+                $get_tag_sql = "SELECT for_tags.*,
+                                       for_tv.end_date,
+                                       for_tv.seasons, 
+                                       for_tv.awards FROM for_tags
+                                LEFT JOIN for_tv
+                                ON for_tags.tag_id = for_tv.tag_id
+                                WHERE for_tags.tag_id = $get_tag
+                                GROUP BY tag_id;";
+                
+                break;
             case 'event':
                 $get_tag_sql = "SELECT for_tags.*,
                                 for_events.end_date,
@@ -96,6 +107,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 							     for_rel_relative.related_subtype = 'publisher' OR
 							     for_rel_relative.related_subtype = 'developer' OR
 							     for_rel_relative.related_subtype = 'cast' OR
+							     for_rel_relative.related_subtype = 'star' OR
+							     for_rel_relative.related_subtype = 'character' OR
 							     for_rel_relative.related_subtype = 'director' OR
 							     for_rel_relative.related_subtype = 'writer' OR
 							     for_rel_relative.related_subtype = 'camera' OR
@@ -220,6 +233,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
             break;
         case "'game'":
         case "'movie'":
+        case "'tv'":
         case "'company'":
         case "'serie'":
         case "'album'":
