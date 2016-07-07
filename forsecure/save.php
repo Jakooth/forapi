@@ -156,6 +156,10 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 include ('save_movie.php');
                 
                 break;
+            case 'tv':
+                include ('save_tv.php');
+                
+                break;
             case 'event':
                 include ('save_event.php');
                 

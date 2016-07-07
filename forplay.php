@@ -112,6 +112,24 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         goto end;
     }
     
+    /**
+     * In case this is work in progress articles
+     */
+    
+    if (mysqli_num_rows($get_article_result) <= 0) {
+        $get_article_sql = "SELECT for_articles.*
+                            FROM for_articles
+    						WHERE for_articles.article_id = $get_tag
+    	                    AND (url = $get_url)
+        					AND (`type` = $get_type)
+        					AND (subtype = $get_subtype)
+        					AND for_articles.`date` <= now()
+                            ORDER BY date DESC
+                            LIMIT $get_limit OFFSET $get_offset;";
+        
+        $get_article_result = mysqli_query($link, $get_article_sql);
+    }
+    
     while ($article = mysqli_fetch_assoc($get_article_result)) {
         if ($article['subtype'] == 'review' || $article['subtype'] == 'video') {
             
