@@ -7,6 +7,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_articles)";
     $get_subtype = isset($_GET['subtype']) ? "'{$_GET ['subtype']}'" : "ANY (SELECT subtype FROM for_articles)";
     $get_issue = isset($_GET['issue']) ? "'{$_GET ['issue']}'" : false;
+    $get_author = isset($_GET['author']) ? "'{$_GET ['author']}'" : false;
+    $get_suggest = isset($_GET['suggest']) ? "{$_GET ['suggest']}" : false;
     
     /**
      * This is the pagination to lazy load articles.
@@ -17,7 +19,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $get_limit = isset($_GET['limit']) ? "{$_GET ['limit']}" : 50;
     
     /**
-     * TODO: What is the difference now between the two queries?
+     * 1 of 5: Get portal based on type and subtype.
      */
     
     $get_article_sql = "SELECT for_articles.*, 
@@ -35,31 +37,77 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                         LIMIT $get_limit OFFSET $get_offset;";
     
     /**
-     * This will exclude some quotes and carets without priority.
-     * TODO: Provide code for getting specific issue:
-     * WHERE and MAX need to be variables.
+     * 2 of 5: Main page load - all articles, excluding some quotes and carets.
+     * Also suggested articles by tag when opening another material.
      */
     
-    if (count($_GET) <= 0 || $get_issue || (count($_GET) == 1 &&
-             isset($_GET['offset']) && ! isset($_GET['tag']))) {
+    if (count($_GET) <= 0 || $get_issue ||
+             (count($_GET) == 1 && isset($_GET['offset']) &&
+             ! isset($_GET['tag'])) || (count($_GET) == 1 &&
+             isset($_GET['offset']) && ! isset($_GET['tag'])) || (count($_GET) ==
+             3 && isset($_GET['suggest']) && isset($_GET['tag']) &&
+             isset($_GET['offset']))) {
+        
+        $sort = array();
+        $not = '';
+        
+        if ($get_suggest) {
+            $php_suggest = explode(',', urldecode($get_suggest));
+            
+            foreach ($php_suggest as $tag) {
+                array_push($sort, 
+                        "group_concat(for_rel_tags.tag_id SEPARATOR ',') LIKE '%$tag%' DESC");
+            }
+            
+            $sort = join(', ', $sort) . ',  ';
+            $not = "AND for_articles.article_id != $get_tag";
+        } else {
+            $sort = '';
+        }
+        
         $get_article_sql = "SELECT for_articles.*, 
                                    for_issues.`name` AS issue, 
                                    for_issues.tag AS issue_tag 
                             FROM for_articles
                             INNER JOIN for_rel_issues ON for_articles.article_id = for_rel_issues.article_id
                             INNER JOIN for_issues ON for_issues.issue_id = for_rel_issues.issue_id
+                            INNER JOIN for_rel_tags ON for_articles.article_id = for_rel_tags.article_id
                             WHERE (subtype 
                             IN ('news', 'video', 'review', 'feature') 
                             OR (subtype = 'aside' AND priority = 'aside')) 
                             AND for_articles.`date` <= now()
-                            ORDER BY date DESC
+                            $not
+                            GROUP BY for_articles.article_id
+                            ORDER BY $sort date DESC
                             LIMIT $get_limit OFFSET $get_offset;";
+    }
     
     /**
+     * TODO: 3 of 5: Get specific issue or the latest one.
      * This is the backup for getting the latest issue:
      * AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM
      * for_rel_issues)
      */
+    
+    /**
+     * 4 of 5: Get articles by author.
+     */
+    
+    if ($get_author) {
+        $get_article_sql = "SELECT for_articles.*,
+                                   for_issues.`name` AS issue,
+                                   for_issues.tag AS issue_tag
+                            FROM for_articles
+                            INNER JOIN for_rel_issues ON for_articles.article_id = for_rel_issues.article_id
+                            INNER JOIN for_issues ON for_issues.issue_id = for_rel_issues.issue_id
+                            INNER JOIN for_rel_authors ON for_articles.article_id = for_rel_authors.article_id
+                            WHERE (subtype
+                            IN ('news', 'video', 'review', 'feature')
+                            OR (subtype = 'aside' AND priority = 'aside'))
+                            AND for_articles.`date` <= now()
+                            AND for_rel_authors.author_id = $get_author
+                            ORDER BY date DESC
+                            LIMIT $get_limit OFFSET $get_offset;";
     }
     
     /**
@@ -113,10 +161,10 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     }
     
     /**
-     * In case this is work in progress articles
+     * 5 of 5: Work in progress articles from the adminstration UI.
      */
     
-    if (mysqli_num_rows($get_article_result) <= 0) {
+    if (mysqli_num_rows($get_article_result) <= 0 && ! isset($_GET['offset'])) {
         $get_article_sql = "SELECT for_articles.*
                             FROM for_articles
     						WHERE for_articles.article_id = $get_tag
@@ -227,7 +275,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         $articles[] = $article;
     }
     
-    if (isset($_GET['tag'])) {
+    if (isset($_GET['tag']) && ! $get_suggest) {
         
         /**
          * Merge version tested.

@@ -18,7 +18,8 @@ if (getenv('REQUEST_METHOD') == 'GET' || getenv('REQUEST_METHOD') == 'POST') {
     
     $get_log_sql = "SELECT * 
                     FROM for_log 
-                    ORDER BY isnull(acknowledged) DESC, created DESC;";
+                    ORDER BY isnull(acknowledged) DESC, created DESC
+                    LIMIT 1000;";
     
     $get_log_result = true;
     $update_log_result = true;
