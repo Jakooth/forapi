@@ -4,7 +4,6 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "7f41131dacd10b6e5a090ab2460457dc",
     "content-hash": "2e2f11bd6730b6a2b1f51d007e6b9f66",
     "packages": [
         {
@@ -45,7 +44,7 @@
                 }
             ],
             "description": "Light PHP wrapper for the OAuth 2.0 protocol (based on OAuth 2.0 Authorization Protocol draft-ietf-oauth-v2-15)",
-            "time": "2015-08-03 19:57:06"
+            "time": "2015-08-03T19:57:06+00:00"
         },
         {
             "name": "auth0/auth0-php",
@@ -91,7 +90,7 @@
                 }
             ],
             "description": "Auth0 PHP SDK.",
-            "time": "2016-02-03 12:21:21"
+            "time": "2016-02-03T12:21:21+00:00"
         },
         {
             "name": "bramus/router",
@@ -99,20 +98,20 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/bramus/router.git",
-                "reference": "1f40155d0fe9ec21ff0dcf4c4d003d9fb38f41bc"
+                "reference": "e331410878b58635a3a3cccae10a977890ec9c79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bramus/router/zipball/1f40155d0fe9ec21ff0dcf4c4d003d9fb38f41bc",
-                "reference": "1f40155d0fe9ec21ff0dcf4c4d003d9fb38f41bc",
+                "url": "https://api.github.com/repos/bramus/router/zipball/e331410878b58635a3a3cccae10a977890ec9c79",
+                "reference": "e331410878b58635a3a3cccae10a977890ec9c79",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
             "require-dev": {
-                "phpunit/php-code-coverage": "1.3.*@dev",
-                "phpunit/phpunit": "3.7.x"
+                "phpunit/php-code-coverage": "~1.2",
+                "phpunit/phpunit": "~3.7"
             },
             "type": "library",
             "autoload": {
@@ -137,7 +136,7 @@
                 "router",
                 "routing"
             ],
-            "time": "2015-07-17 10:08:09"
+            "time": "2016-07-15T19:36:40+00:00"
         },
         {
             "name": "firebase/php-jwt",
@@ -180,7 +179,7 @@
             ],
             "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
             "homepage": "https://github.com/firebase/php-jwt",
-            "time": "2015-07-22 18:31:08"
+            "time": "2015-07-22T18:31:08+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -242,7 +241,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2015-11-23 00:47:50"
+            "time": "2015-11-23T00:47:50+00:00"
         },
         {
             "name": "guzzlehttp/promises",
@@ -293,7 +292,7 @@
             "keywords": [
                 "promise"
             ],
-            "time": "2015-10-15 22:28:00"
+            "time": "2015-10-15T22:28:00+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -351,7 +350,7 @@
                 "stream",
                 "uri"
             ],
-            "time": "2016-02-18 21:54:00"
+            "time": "2016-02-18T21:54:00+00:00"
         },
         {
             "name": "psr/http-message",
@@ -400,7 +399,7 @@
                 "request",
                 "response"
             ],
-            "time": "2015-05-04 20:22:00"
+            "time": "2015-05-04T20:22:00+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -408,24 +407,24 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/phpdotenv.git",
-                "reference": "11a353b704488944a7477b229d119fe1cfa56f68"
+                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/11a353b704488944a7477b229d119fe1cfa56f68",
-                "reference": "11a353b704488944a7477b229d119fe1cfa56f68",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
+                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.9"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8|^5.0"
+                "phpunit/phpunit": "^4.8 || ^5.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -445,13 +444,12 @@
                 }
             ],
             "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
-            "homepage": "http://github.com/vlucas/phpdotenv",
             "keywords": [
                 "dotenv",
                 "env",
                 "environment"
             ],
-            "time": "2016-02-11 08:44:10"
+            "time": "2016-09-01T10:05:43+00:00"
         }
     ],
     "packages-dev": [],
