@@ -28,7 +28,7 @@
 		<link>
 			<name>forsecret (root)</name>
 			<type>2</type>
-			<location>C:/Work/apache-httpd-2.4.16/forsecret</location>
+			<location>C:/Work/apache-httpd/forsecret</location>
 		</link>
 	</linkedResources>
 </projectDescription>

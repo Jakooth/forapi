@@ -12,8 +12,8 @@ $router = new \Bramus\Router\Router();
 /**
  * This to validate secure requests and set user permissions.
  */
-$router->before('GET|POST', '(log.*|save.*|imgs.*|google.*)', 
-        function  ()
+$router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)', 
+        function ()
         {
             global $events;
             global $user;
@@ -22,6 +22,7 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*)',
              * Validate Apache authorization hader with token.
              */
             
+            $requestUri = $_SERVER['REQUEST_URI'];
             $requestHeaders = apache_request_headers();
             $authorizationHeader = isset($requestHeaders['Authorization']) ? $requestHeaders['Authorization'] : null;
             
@@ -105,8 +106,15 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*)',
                 exit();
             }
             
+            /**
+             * For profiles and comments APIs the user is always authorized
+             * and the permissions are validated after based on admin rights.
+             */
+            
             if ($user['app_metadata']['roles'][0] != 'admin' &&
-                     $user['app_metadata']['roles'][0] != 'superadmin') {
+                     $user['app_metadata']['roles'][0] != 'superadmin' &&
+                     ! strpos($requestUri, 'profiles.php')) {
+                
                 header('HTTP/1.0 401 Unauthorized');
                 
                 /**
@@ -130,8 +138,8 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*)',
 /**
  * These is the public API to get Forplay content.
  */
-$router->match('POST|GET', '(get.*|search.*|forplay.*|google.*)', 
-        function  ()
+$router->match('POST|GET', '(tags.*|search.*|forplay.*|sitemap.*)', 
+        function ()
         {
             global $events;
             
@@ -144,8 +152,8 @@ $router->match('POST|GET', '(get.*|search.*|forplay.*|google.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*|imgs.*|sitemap.*)', 
-        function  ()
+$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profiles.*))', 
+        function ()
         {
             global $events;
             
@@ -159,7 +167,7 @@ $router->match('POST|GET', '(log.*|save.*|imgs.*|sitemap.*)',
  * If someone tries to access unknown API.
  */
 $router->set404(
-        function  ()
+        function ()
         {
             global $events;
             

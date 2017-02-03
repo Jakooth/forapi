@@ -171,7 +171,6 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     	                    AND (url = $get_url)
         					AND (`type` = $get_type)
         					AND (subtype = $get_subtype)
-        					AND for_articles.`date` <= now()
                             ORDER BY date DESC
                             LIMIT $get_limit OFFSET $get_offset;";
         
