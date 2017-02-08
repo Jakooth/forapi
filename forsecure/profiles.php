@@ -1,12 +1,12 @@
 <?php
-include ('../../forsecret/db.php');
+include ('../../../forsecret/db.php');
 
 /**
  * Get user's profile by id.
  */
 
 if (getenv('REQUEST_METHOD') == 'GET') {
-    $get_profile = isset($_GET['profile_id']) ? "{$_GET ['profile_id']}" : false;
+    $get_profile = isset($_GET['email']) ? "'{$_GET ['email']}'" : false;
     
     if ($user['app_metadata']['roles'][0] != 'admin' &&
              $user['app_metadata']['roles'][0] != 'superadmin') {
@@ -28,7 +28,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         }
         
         $profile_sql = "SELECT * FROM for_profiles
-                        WHERE profile_id = $get_profile
+                        WHERE email = $get_profile
                         ORDER BY nickname ASC;";
         
         $profile_result = mysqli_query($link, $profile_sql);
@@ -49,7 +49,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         
         $profiles = mysqli_fetch_assoc($profile_result);
         
-        if ($user['email'] != $profiles[0]['email']) {
+        if ($profiles && $user['email'] != $profiles[0]['email']) {
             header('HTTP/1.0 401 Unauthorized');
             
             $events['auth0']['method'] = 'secure';
@@ -66,11 +66,11 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         }
     } else {
         if (! $get_profile) {
-            $get_profile = "ANY (SELECT profile_id FROM for_profiles)";
+            $get_profile = "ANY (SELECT email FROM for_profiles)";
         }
         
         $profile_sql = "SELECT * FROM for_profiles
-                        WHERE profile_id = $get_profile
+                        WHERE email = $get_profile
                         ORDER BY nickname ASC;";
         
         $profile_result = mysqli_query($link, $profile_sql);
