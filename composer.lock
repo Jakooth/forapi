@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e2f11bd6730b6a2b1f51d007e6b9f66",
+    "content-hash": "1be29a7295597ca39ae786813d221d11",
     "packages": [
         {
             "name": "adoy/oauth2",
@@ -48,16 +48,16 @@
         },
         {
             "name": "auth0/auth0-php",
-            "version": "3.0.1",
+            "version": "4.0.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/auth0/auth0-PHP.git",
-                "reference": "f98b0be11a4bde322de6b490561936e290aae824"
+                "reference": "d02f46240abddf1d0f4f667e1aab78d7737c4eff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/auth0/auth0-PHP/zipball/f98b0be11a4bde322de6b490561936e290aae824",
-                "reference": "f98b0be11a4bde322de6b490561936e290aae824",
+                "url": "https://api.github.com/repos/auth0/auth0-PHP/zipball/d02f46240abddf1d0f4f667e1aab78d7737c4eff",
+                "reference": "d02f46240abddf1d0f4f667e1aab78d7737c4eff",
                 "shasum": ""
             },
             "require": {
@@ -65,7 +65,7 @@
                 "ext-json": "*",
                 "firebase/php-jwt": "^3.0",
                 "guzzlehttp/guzzle": "^6.1",
-                "php": ">=5.4.0"
+                "php": ">=5.5"
             },
             "require-dev": {
                 "codeclimate/php-test-reporter": "^0.2.0",
@@ -90,7 +90,7 @@
                 }
             ],
             "description": "Auth0 PHP SDK.",
-            "time": "2016-02-03T12:21:21+00:00"
+            "time": "2016-12-30T21:39:54+00:00"
         },
         {
             "name": "bramus/router",
@@ -407,12 +407,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/phpdotenv.git",
-                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c"
+                "reference": "7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
-                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5",
+                "reference": "7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5",
                 "shasum": ""
             },
             "require": {
@@ -449,7 +449,7 @@
                 "env",
                 "environment"
             ],
-            "time": "2016-09-01T10:05:43+00:00"
+            "time": "2017-02-03T22:05:04+00:00"
         }
     ],
     "packages-dev": [],

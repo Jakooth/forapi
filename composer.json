@@ -1,13 +1,14 @@
 {
-  "name" : "forapi",
-  "version" : "1.0",
-  "require" : {
-    "auth0/auth0-php" : "~3.0.1",
-    "bramus/router" : "dev-master",
-    "vlucas/phpdotenv" : "dev-master"
-  },
-  "repositories" : [ {
-    "type" : "composer",
-    "url" : "https://packagist.org/"
-  } ]
+	"name" : "forapi",
+	"version" : "1.0",
+	"require" : {
+		"bramus/router" : "dev-master",
+		"vlucas/phpdotenv" : "dev-master",
+		"auth0/auth0-php" : "4.0.11"
+	},
+	"repositories" : [{
+			"type" : "composer",
+			"url" : "https://packagist.org/"
+		}
+	]
 }

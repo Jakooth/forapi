@@ -49,7 +49,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         
         $profiles = mysqli_fetch_assoc($profile_result);
         
-        if ($profiles && $user['email'] != $profiles[0]['email']) {
+        if ($profiles && $user['email'] != $profiles['email']) {
             header('HTTP/1.0 401 Unauthorized');
             
             $events['auth0']['method'] = 'secure';
@@ -110,73 +110,102 @@ if (getenv('REQUEST_METHOD') == 'GET') {
 
 if (getenv('REQUEST_METHOD') == 'POST') {
     $json = file_get_contents("php://input");
-    $profile = json_decode($json, true);
+    $post_profile = json_decode($json, true);
+    $profile;
     
-    $profile['nickname'] = isset($profile['nickname']) ? "{$profile['nickname']}" : isset(
-            $user['nickname']) ? "'{$user['nickname']}'" : "null";
-    $profile['given_name'] = isset($profile['given_name']) ? "'{$profile['given_name']}'" : isset(
-            $user['given_name']) ? "'{$user['given_name']}'" : "null";
-    $profile['family_name'] = isset($profile['family_name']) ? "'{$profile['family_name']}'" : isset(
-            $user['family_name']) ? "'{$user['family_name']}'" : "null";
+    /**
+     * TODO: Remove profile variable and replace it other variables.
+     * E.g. $profile['nickname'] to $sql_nickname,
+     * $profile['facebook_id'] to $sql_fecebook_id, etc.
+     * Remember to also include the clean values after INSERT.
+     * On UPDATE return return the returned profile plus the new clean values.
+     */
+    
+    $nickname_sql = isset($post_profile['nickname']) ? "'{$post_profile['nickname']}'" : (isset(
+            $user['nickname']) ? "'{$user['nickname']}'" : "null");
+    $given_name_sql = isset($post_profile['given_name']) ? "'{$post_profile['given_name']}'" : (isset(
+            $user['given_name']) ? "'{$user['given_name']}'" : "null");
+    $family_name_sql = isset($post_profile['family_name']) ? "'{$post_profile['family_name']}'" : (isset(
+            $user['family_name']) ? "'{$user['family_name']}'" : "null");
+    $facebook_sql = "null";
+    $google_sql = "null";
+    $auth0_sql = "null";
+    $provider_sql = "null";
+    
+    $profile['nickname'] = "null";
+    $profile['given_name'] = "null";
+    $profile['family_name'] = "null";
+    $profile['facebook_id'] = "null";
+    $profile['google_id'] = "null";
+    $profile['auth0_id'] = "null";
     
     switch ($user['identities'][0]['provider']) {
         case 'facebook':
-            $profile['provider'] = "facebook_id = '{$user['identities'][0]['user_id']}'";
+            $provider_sql = "facebook_id = '{$user['identities'][0]['user_id']}'";
+            $facebook_sql = "'{$user['identities'][0]['user_id']}'";
             
             break;
         case 'google-oauth2':
-            $profile['provider'] = "google_id = '{$user['identities'][0]['user_id']}'";
+            $provider_sql = "google_id = '{$user['identities'][0]['user_id']}'";
+            $google_sql = "'{$user['identities'][0]['user_id']}'";
             
             break;
         case 'auth0':
-            $profile['provider'] = "auth0_id = '{$user['identities'][0]['user_id']}'";
+            $provider_sql = "auth0_id = '{$user['identities'][0]['user_id']}'";
+            $auth0_sql = "'{$user['identities'][0]['user_id']}'";
             
             break;
     }
     
-    $profile['facebook_id'] = isset($user['facebook_id']) ? "'{$user['facebook_id']}'" : "null";
-    $profile['google_id'] = isset($user['google_id']) ? "'{$user['google_id']}'" : "null";
-    $profile['auth0_id'] = isset($user['auth0_id']) ? "'{$user['auth0_id']}'" : "null";
-    
     $profile_sql = "SELECT * FROM for_profiles
-                    WHERE email = {$profile['email']}
+                    WHERE email = '{$user['email']}'
                     ORDER BY nickname ASC;";
     
     $profile_result = mysqli_query($link, $profile_sql);
     
-    if ($profile_result) {
+    if (! $profile_result) {
+        header('HTTP/1.0 404 Not Found');
+        
+        $events['mysql']['result'] = false;
+        $events['mysql']['code'] = mysqli_errno($link);
+        $events['mysql']['error'] = mysqli_error($link);
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        exit();
+    }
+    
+    $profile = mysqli_fetch_assoc($profile_result);
+    
+    if ($profile) {
         $profile_sql = "UPDATE for_profiles
-    					SET nickname = '{$profile['nickname']}',
-    						given_name = '{$profile['given_name']}',
-    						family_name = '{$profile['family_name']}'
-    						{$profile['provider']}
+    					SET nickname = $nickname_sql,
+    						given_name = $given_name_sql,
+    						family_name = $family_name_sql,
+    						$provider_sql
     					WHERE email = '{$user['email']}';";
         
-        $profile['profile_id'] = '';
         $events['mysql']['operation'] = 'update';
-        
-        $profile['profile_id'] = mysqli_fetch_assoc($profile_result)[0]['profile_id'];
     } else {
         $profile_sql = "INSERT INTO for_profiles
-                        (nickname, given_name, family_name, facebook_id, google_id, auth0_id)
+                            (email, nickname, given_name, family_name, facebook_id, google_id, auth0_id)
                         VALUES
-                        ('{$profile['nickname']}',
-                         '{$profile['given_name']}',
-                         '{$profile['family_name']}',
-                         '{$profile['facebook_id']}',
-                         '{$profile['google_id']}',
-                         '{$profile['auth0_id']}');";
+                            ('{$user['email']}',
+                             $nickname_sql,
+                             $given_name_sql,
+                             $family_name_sql,
+                             $facebook_sql,
+                             $google_sql,
+                             $auth0_sql);";
         
         $events['mysql']['operation'] = 'insert';
     }
     
     $profile_result = mysqli_query($link, $profile_sql);
     
-    if ($events['mysql']['operation'] == 'insert') {
-        $profile['profile_id'] = mysqli_insert_id($link);
-    }
-    
-    if (! $tag_result) {
+    if (! $profile_result) {
         header('HTTP/1.0 404 Not Found');
         
         $events['mysql']['result'] = false;
@@ -191,7 +220,21 @@ if (getenv('REQUEST_METHOD') == 'POST') {
         exit();
     }
     
+    /**
+     * One last fetch from the data base to get the updated profile.
+     * One can update this here in PHP based on the JSON,
+     * but I prefer to get the real thing from the data base.
+     */
+    
+    $profile_sql = "SELECT * FROM for_profiles
+                    WHERE email = '{$user['email']}'
+                    ORDER BY nickname ASC;";
+    
+    $profile_result = mysqli_query($link, $profile_sql);
+    
     $events['mysql']['result'] = true;
+    
+    $profile = mysqli_fetch_assoc($profile_result);
     
     echo json_encode(
             array(

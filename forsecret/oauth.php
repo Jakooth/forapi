@@ -111,8 +111,8 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)',
              * and the permissions are validated after based on admin rights.
              */
             
-            if ($user['app_metadata']['roles'][0] != 'admin' &&
-                     $user['app_metadata']['roles'][0] != 'superadmin' &&
+            if ($user['appMetadata']['roles'][0] != 'admin' &&
+                     $user['appMetadata']['roles'][0] != 'superadmin' &&
                      ! strpos($requestUri, 'profiles.php')) {
                 
                 header('HTTP/1.0 401 Unauthorized');
