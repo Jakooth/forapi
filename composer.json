@@ -3,8 +3,8 @@
 	"version" : "1.0",
 	"require" : {
 		"bramus/router" : "dev-master",
-		"vlucas/phpdotenv" : "dev-master",
-		"auth0/auth0-php" : "4.0.11"
+		"vlucas/phpdotenv" : "2.2.0",
+		"auth0/auth0-php" : "~4.0.0"
 	},
 	"repositories" : [{
 			"type" : "composer",

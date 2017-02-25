@@ -1,4 +1,9 @@
 <?php
+use Auth0\SDK\JWTVerifier;
+use Auth0\SDK\Auth0Api;
+use Auth0\SDK\Exception\CoreException;
+use Auth0\SDK\API\Management;
+
 /**
  * Include required sources from composer.
  */
@@ -54,15 +59,30 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)',
             $token = str_replace('Bearer ', '', $authorizationHeader);
             $secret = '<--!secret-->';
             $client = '<--!client-->';
-            $domain = "<--!forplay.eu.auth0.com-->";
+            $domain = '<--!forplay.eu.auth0.com-->';
+            $domainUrl = '<--!https://forplay.eu.auth0.com/-->';
             
             $decodedToken = null;
-            $api = new \Auth0\SDK\Auth0Api($token, $domain);
+            $auth0Api = new Management($token, $domain);
+            
+            $verifier = new JWTVerifier(
+                    [
+                            'suported_algs' => [
+                                    'RS256',
+                                    'HS256'
+                            ],
+                            'valid_audiences' => [
+                                    $client
+                            ],
+                            'authorized_iss' => [
+                                    $domainUrl
+                            ],
+                            'client_secret' => $secret
+                    ]);
             
             try {
-                $decodedToken = \Auth0\SDK\Auth0JWT::decode($token, $client, 
-                        $secret);
-            } catch (\Auth0\SDK\Exception\CoreException $e) {
+                $decodedToken = $verifier->verifyAndDecode($token);
+            } catch (CoreException $e) {
                 header('HTTP/1.0 401 Unauthorized');
                 
                 /**
@@ -84,8 +104,8 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)',
             }
             
             try {
-                $user = $api->users->get($decodedToken->sub);
-            } catch (\Auth0\SDK\Exception\CoreException $e) {
+                $user = $auth0Api->users->get($decodedToken->sub);
+            } catch (CoreException $e) {
                 header('HTTP/1.0 401 Unauthorized');
                 
                 /**
@@ -111,8 +131,8 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)',
              * and the permissions are validated after based on admin rights.
              */
             
-            if ($user['appMetadata']['roles'][0] != 'admin' &&
-                     $user['appMetadata']['roles'][0] != 'superadmin' &&
+            if ($user['app_metadata']['roles'][0] != 'admin' &&
+                     $user['app_metadata']['roles'][0] != 'superadmin' &&
                      ! strpos($requestUri, 'profiles.php')) {
                 
                 header('HTTP/1.0 401 Unauthorized');
@@ -152,7 +172,7 @@ $router->match('POST|GET', '(tags.*|search.*|forplay.*|sitemap.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profiles.*))', 
+$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profile.*)', 
         function ()
         {
             global $events;
