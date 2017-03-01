@@ -127,6 +127,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             $user['given_name']) ? "'{$user['given_name']}'" : "null");
     $family_name_sql = isset($post_profile['family_name']) ? "'{$post_profile['family_name']}'" : (isset(
             $user['family_name']) ? "'{$user['family_name']}'" : "null");
+    $avatar_sql = isset($user['picture']) ? "'{$user['picture']}'" : "null";
+    $darkened_sql = isset($post_profile['settings']['darkened']) ? "{$post_profile['settings']['darkened']}" : "0";
+    $collapsed_sql = isset($post_profile['settings']['collapsed']) ? "{$post_profile['settings']['collapsed']}" : "0";
     $facebook_sql = "null";
     $google_sql = "null";
     $auth0_sql = "null";
@@ -135,6 +138,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $profile['nickname'] = "null";
     $profile['given_name'] = "null";
     $profile['family_name'] = "null";
+    $profile['avatar'] = "null";
     $profile['facebook_id'] = "null";
     $profile['google_id'] = "null";
     $profile['auth0_id'] = "null";
@@ -184,21 +188,27 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     					SET nickname = $nickname_sql,
     						given_name = $given_name_sql,
     						family_name = $family_name_sql,
-    						$provider_sql
+    						avatar = $avatar_sql,
+    						$provider_sql,
+    						darkened = $darkened_sql,
+    						collapsed = $collapsed_sql
     					WHERE email = '{$user['email']}';";
         
         $events['mysql']['operation'] = 'update';
     } else {
         $profile_sql = "INSERT INTO for_profiles
-                            (email, nickname, given_name, family_name, facebook_id, google_id, auth0_id)
+                            (email, nickname, given_name, family_name, avatar, facebook_id, google_id, auth0_id, darkened, collapsed)
                         VALUES
                             ('{$user['email']}',
                              $nickname_sql,
                              $given_name_sql,
                              $family_name_sql,
+                             $avatar_sql,
                              $facebook_sql,
                              $google_sql,
-                             $auth0_sql);";
+                             $auth0_sql,
+                             $darkened_sql,
+                             $collapsed_sql);";
         
         $events['mysql']['operation'] = 'insert';
     }
