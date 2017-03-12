@@ -17,7 +17,8 @@ $router = new \Bramus\Router\Router();
 /**
  * This to validate secure requests and set user permissions.
  */
-$router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)', 
+$router->before('GET|POST', 
+        '(log.*|save.*|imgs.*|google.*|profiles.*|comment.*)', 
         function ()
         {
             global $events;
@@ -132,8 +133,9 @@ $router->before('GET|POST', '(log.*|save.*|imgs.*|google.*|profiles.*)',
              */
             
             if ($user['app_metadata']['roles'][0] != 'admin' &&
-                     $user['app_metadata']['roles'][0] != 'superadmin' &&
-                     ! strpos($requestUri, 'profiles.php')) {
+                     $user['app_metadata']['roles'][0] != 'superadmin' && ! (strpos(
+                            $requestUri, 'profiles.php') ||
+                     strpos($requestUri, 'comment.php'))) {
                 
                 header('HTTP/1.0 401 Unauthorized');
                 
@@ -172,7 +174,7 @@ $router->match('POST|GET', '(tags.*|search.*|forplay.*|sitemap.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profile.*)', 
+$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profile.*|comment.*)', 
         function ()
         {
             global $events;

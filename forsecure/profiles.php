@@ -200,15 +200,15 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                             (email, nickname, given_name, family_name, avatar, facebook_id, google_id, auth0_id, darkened, collapsed)
                         VALUES
                             ('{$user['email']}',
-                             $nickname_sql,
-                             $given_name_sql,
-                             $family_name_sql,
-                             $avatar_sql,
-                             $facebook_sql,
-                             $google_sql,
-                             $auth0_sql,
-                             $darkened_sql,
-                             $collapsed_sql);";
+                               $nickname_sql,
+                               $given_name_sql,
+                               $family_name_sql,
+                               $avatar_sql,
+                               $facebook_sql,
+                               $google_sql,
+                               $auth0_sql,
+                               $darkened_sql,
+                               $collapsed_sql);";
         
         $events['mysql']['operation'] = 'insert';
     }
