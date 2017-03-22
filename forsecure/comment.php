@@ -1,18 +1,43 @@
 <?php
 include ('../../../forsecret/db.php');
 
+/**
+ * Get compelte profile information first.
+ * This is based on PHP authentication, not on POST data.
+ * This is valid for all methods.
+ */
+
+$profile_sql = "SELECT * FROM for_profiles
+                WHERE email = '{$user['email']}'
+                LIMIT 1;";
+
+$profile_result = mysqli_query($link, $profile_sql);
+$profile = mysqli_fetch_assoc($profile_result);
+
 if (getenv('REQUEST_METHOD') == 'GET') {
-    $get_comments = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
+    $get_comments_sql = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
     
-    $comments_sql = "SELECT for_comments.*, for_profiles.* 
+    /**
+     * TODO: Be specific on columns, because there are duplicates.
+     */
+    
+    $comments_sql = "SELECT for_comments.*, 
+                            for_profiles.email, 
+                            for_profiles.nickname, 
+                            for_profiles.given_name, 
+                            for_profiles.family_name, 
+                            for_profiles.avatar,
+                            for_likes.liked,
+                            for_likes.disliked,
+                            for_likes.flagged
                      FROM for_comments
                      LEFT JOIN for_profiles
                      ON for_comments.profile_id = for_profiles.profile_id
-                     WHERE article_id = $get_comments
-                     ORDER BY COALESCE(path, parent_comment_id, comment_id), 
-                    				   path IS NOT NULL,
-                                       parent_comment_id IS NOT NULL, 
-                                       comment_id;";
+                     LEFT JOIN for_likes
+                     ON for_comments.comment_id = for_likes.comment_id 
+                     AND for_likes.profile_id = {$profile['profile_id']}
+                     WHERE article_id = $get_comments_sql
+                     ORDER BY path;";
     
     $comments_result = mysqli_query($link, $comments_sql);
     
@@ -22,6 +47,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         $events['mysql']['result'] = false;
         $events['mysql']['code'] = mysqli_errno($link);
         $events['mysql']['error'] = mysqli_error($link);
+        $events['comments']['message'] = 'Unacceptable article identifier was sent. Are you sure you accessing this page from forplay.bg';
         
         echo json_encode(
                 array(
@@ -57,49 +83,94 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     $post_comment = json_decode($json, true);
     
     $parent_comment_id_sql = isset($post_comment['parentCommentId']) ? "'{$post_comment ['parentCommentId']}'" : "null";
-    $path_sql = isset($post_comment['path']) ? "'{$post_comment ['path']}'" : "null";
+    $path_sql = "''";
     
-    /**
-     * Get compelte profile information first.
-     * This is based on PHP authentication, not on POST data.
-     * TODO: Only admin and the comment owner can update.
-     * TODO: If liked, disliked or banned this also need to be updated.
-     */
+    $comment_sql = false;
+    $like_sql = false;
     
-    $profile_sql = "SELECT * FROM for_profiles
-                    WHERE email = '{$user['email']}'
-                    LIMIT 1;";
-    
-    $profile_result = mysqli_query($link, $profile_sql);
-    $profile = mysqli_fetch_assoc($profile_result);
+    if (isset($post_comment['parentCommentId'])) {
+        $get_parent_comment_sql = "SELECT * FROM for_comments
+                                   WHERE comment_id = {$post_comment['parentCommentId']}
+                                   LIMIT 1;";
+        
+        $comment_result = mysqli_query($link, $get_parent_comment_sql);
+        
+        if (! $comment_result) {
+            header('HTTP/1.0 404 Not Found');
+            
+            $events['mysql']['result'] = false;
+            $events['mysql']['code'] = mysqli_errno($link);
+            $events['mysql']['error'] = mysqli_error($link);
+            $events['comments']['message'] = 'The comment you are trying to reply probably no longer exists. Please refersh the page and try again.';
+            
+            echo json_encode(
+                    array(
+                            'events' => $events
+                    ));
+            
+            exit();
+        }
+        
+        $parent_comment = mysqli_fetch_assoc($comment_result);
+        
+        if (! sizeof($parent_comment['path']) == 42) {
+            header('HTTP/1.0 401 Unauthorized');
+            
+            $events['comments']['message'] = 'Too many replies. Our data base is about to expode. Please chat with your mate in another manner.';
+            
+            echo json_encode(
+                    array(
+                            'events' => $events
+                    ));
+            
+            exit();
+        }
+    }
     
     if (isset($post_comment['commentId'])) {
         if (isset($post_comment['liked'])) {
-            $comment_sql = "INSERT INTO for_likes (comment_id, profile_id, liked) 
-                            VALUES ({$post_comment['commentId']}, 
-                                    {$profile['profile_id']}, 
-                                    {$post_comment['liked']}) 
-                            ON DUPLICATE KEY UPDATE liked = NOT liked;";
+            $like_sql = "INSERT INTO for_likes (comment_id, profile_id, liked) 
+                         VALUES ({$post_comment['commentId']}, 
+                                 {$profile['profile_id']}, 
+                                 {$post_comment['liked']}) 
+                         ON DUPLICATE KEY UPDATE liked = NOT liked;";
+            
+            $comment_sql = "UPDATE for_comments
+                            SET likes = likes + 1
+                            WHERE comment_id = {$post_comment['commentId']};";
         } else 
             if (isset($post_comment['disliked'])) {
-                $comment_sql = "INSERT INTO for_likes (comment_id, profile_id, disliked)
-                                VALUES ({$post_comment['commentId']}, 
-                                        {$profile['profile_id']}, 
-                                        {$post_comment['disliked']})
-                                ON DUPLICATE KEY UPDATE disliked = NOT disliked;";
+                $like_sql = "INSERT INTO for_likes (comment_id, profile_id, disliked)
+                             VALUES ({$post_comment['commentId']}, 
+                                     {$profile['profile_id']}, 
+                                     {$post_comment['disliked']})
+                             ON DUPLICATE KEY UPDATE disliked = NOT disliked;";
+                
+                $comment_sql = "UPDATE for_comments
+                                SET dislikes = dislikes + 1
+                                WHERE comment_id = {$post_comment['commentId']};";
             } else 
                 if (isset($post_comment['flagged'])) {
-                    $comment_sql = "INSERT INTO for_likes (comment_id, profile_id, flagged)
-                                    VALUES ({$post_comment['commentId']}, 
-                                            {$profile['profile_id']}, 
-                                            {$post_comment['flagged']})
-                                    ON DUPLICATE KEY UPDATE flagged = NOT flagged;";
-                } else {
+                    $like_sql = "INSERT INTO for_likes (comment_id, profile_id, flagged)
+                                 VALUES ({$post_comment['commentId']}, 
+                                         {$profile['profile_id']}, 
+                                         {$post_comment['flagged']})
+                                 ON DUPLICATE KEY UPDATE flagged = NOT flagged;";
+                    
                     $comment_sql = "UPDATE for_comments
-                                    SET comment = '{$post_comment['comment']}',
+                                    SET flags = flags + 1
+                                    WHERE comment_id = {$post_comment['commentId']};";
+                } else 
+                    if (isset($post_comment['banned'])) {
+                        $comment_sql = "UPDATE for_comments
+                                        SET banned = NOT banned
+                                        WHERE comment_id = {$post_comment['commentId']};";
+                    } else {
+                        $comment_sql = "UPDATE for_comments
+                                        SET comment = '{$post_comment['comment']}',
                                         updated = now()
                                         WHERE comment_id = {$post_comment['commentId']};";
-                }
+                    }
         
         $events['mysql']['operation'] = 'update';
     } else {
@@ -118,12 +189,17 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     $comment_result = mysqli_query($link, $comment_sql);
     
-    if (! $comment_result) {
+    if ($like_sql) {
+        $like_result = mysqli_query($link, $like_sql);
+    }
+    
+    if (! $comment_result && ($like_sql && ! $like_result)) {
         header('HTTP/1.0 404 Not Found');
         
         $events['mysql']['result'] = false;
         $events['mysql']['code'] = mysqli_errno($link);
         $events['mysql']['error'] = mysqli_error($link);
+        $events['comments']['message'] = 'Failed to insert or update comment. Refer to the mysql error message.';
         
         echo json_encode(
                 array(
@@ -136,6 +212,25 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     switch ($events['mysql']['operation']) {
         case 'insert':
             $post_comment['commentId'] = mysqli_insert_id($link);
+            
+            /**
+             * No need for divider like ".", "/" or "_".
+             * The number is 255 character HEX on 6 digits chunks.
+             */
+            
+            $path_hex = sprintf("%06X", $post_comment['commentId']);
+            $path_sql = isset($parent_comment['path']) ? "'{$parent_comment ['path']}$path_hex'" : "'$path_hex'";
+            
+            /**
+             * Always generate a path for proper sorting.
+             * Do this only, if this is root level comment.
+             */
+            
+            $comment_sql = "UPDATE for_comments
+                            SET path = $path_sql
+                            WHERE comment_id = {$post_comment['commentId']};";
+            
+            $comment_result = mysqli_query($link, $comment_sql);
             
             break;
     }
@@ -151,10 +246,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     LIMIT 1;";
     
     $comment_result = mysqli_query($link, $comment_sql);
+    $comment = mysqli_fetch_assoc($comment_result);
     
     $events['mysql']['result'] = true;
-    
-    $comment = mysqli_fetch_assoc($comment_result);
     
     echo json_encode(
             array(
@@ -173,14 +267,13 @@ if (getenv('REQUEST_METHOD') == 'DELETE') {
      * TODO: Only admin and the comment owner can hide a comment.
      */
     
-    $comment_sql = "UPDATE for_comments
-                    SET updated = now(),
-                        deleted = {$delete_comment['deleted']},
-                        WHERE comment_id = '{$delete_comment['commentId']}';";
+    $get_comment_sql = "UPDATE for_comments
+                        SET deleted = {$delete_comment['deleted']}
+                        WHERE comment_id = {$delete_comment['commentId']};";
     
     $events['mysql']['operation'] = 'update';
     
-    $comment_result = mysqli_query($link, $comment_sql);
+    $comment_result = mysqli_query($link, $get_comment_sql);
     
     if (! $comment_result) {
         header('HTTP/1.0 404 Not Found');
@@ -188,6 +281,7 @@ if (getenv('REQUEST_METHOD') == 'DELETE') {
         $events['mysql']['result'] = false;
         $events['mysql']['code'] = mysqli_errno($link);
         $events['mysql']['error'] = mysqli_error($link);
+        $events['comments']['message'] = 'Failed to delete the comment. Refer to the mysql error message.';
         
         echo json_encode(
                 array(
@@ -197,9 +291,20 @@ if (getenv('REQUEST_METHOD') == 'DELETE') {
         exit();
     }
     
-    $events['mysql']['result'] = true;
+    /**
+     * One last fetch from the data base to get the updated comment.
+     * One can update this here in PHP based on the JSON,
+     * but I prefer to get the real thing from the data base.
+     */
     
+    $comment_sql = "SELECT * FROM for_comments
+                    WHERE comment_id = {$delete_comment['commentId']}
+                    LIMIT 1;";
+    
+    $comment_result = mysqli_query($link, $comment_sql);
     $comment = mysqli_fetch_assoc($comment_result);
+    
+    $events['mysql']['result'] = true;
     
     echo json_encode(
             array(
