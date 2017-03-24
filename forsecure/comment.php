@@ -7,8 +7,9 @@ include ('../../../forsecret/db.php');
  * This is valid for all methods.
  */
 
+$user_email_sql = isset($user['email']) ? "'{$user['email']}'" : "null";
 $profile_sql = "SELECT * FROM for_profiles
-                WHERE email = '{$user['email']}'
+                WHERE email = $user_email_sql
                 LIMIT 1;";
 
 $profile_result = mysqli_query($link, $profile_sql);
@@ -16,10 +17,7 @@ $profile = mysqli_fetch_assoc($profile_result);
 
 if (getenv('REQUEST_METHOD') == 'GET') {
     $get_comments_sql = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
-    
-    /**
-     * TODO: Be specific on columns, because there are duplicates.
-     */
+    $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
     
     $comments_sql = "SELECT for_comments.*, 
                             for_profiles.email, 
@@ -35,7 +33,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
                      ON for_comments.profile_id = for_profiles.profile_id
                      LEFT JOIN for_likes
                      ON for_comments.comment_id = for_likes.comment_id 
-                     AND for_likes.profile_id = {$profile['profile_id']}
+                     AND for_likes.profile_id = $profile_id_sql
                      WHERE article_id = $get_comments_sql
                      ORDER BY path;";
     
@@ -135,8 +133,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                  {$post_comment['liked']}) 
                          ON DUPLICATE KEY UPDATE liked = NOT liked;";
             
+            $likes_sql = $post_comment['liked'] == 0 ? "-" : "+";
             $comment_sql = "UPDATE for_comments
-                            SET likes = likes + 1
+                            SET likes = likes {$likes_sql} 1
                             WHERE comment_id = {$post_comment['commentId']};";
         } else 
             if (isset($post_comment['disliked'])) {
@@ -146,8 +145,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                      {$post_comment['disliked']})
                              ON DUPLICATE KEY UPDATE disliked = NOT disliked;";
                 
+                $likes_sql = $post_comment['disliked'] == 0 ? "-" : "+";
                 $comment_sql = "UPDATE for_comments
-                                SET dislikes = dislikes + 1
+                                SET dislikes = dislikes {$likes_sql} 1
                                 WHERE comment_id = {$post_comment['commentId']};";
             } else 
                 if (isset($post_comment['flagged'])) {
@@ -157,8 +157,9 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                                          {$post_comment['flagged']})
                                  ON DUPLICATE KEY UPDATE flagged = NOT flagged;";
                     
+                    $likes_sql = $post_comment['flagged'] == 0 ? "-" : "+";
                     $comment_sql = "UPDATE for_comments
-                                    SET flags = flags + 1
+                                    SET flags = flags {$likes_sql} 1
                                     WHERE comment_id = {$post_comment['commentId']};";
                 } else 
                     if (isset($post_comment['banned'])) {
@@ -193,7 +194,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
         $like_result = mysqli_query($link, $like_sql);
     }
     
-    if (! $comment_result && ($like_sql && ! $like_result)) {
+    if (! $comment_result && ! ($like_sql && ! $like_result)) {
         header('HTTP/1.0 404 Not Found');
         
         $events['mysql']['result'] = false;
@@ -262,10 +263,6 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 if (getenv('REQUEST_METHOD') == 'DELETE') {
     $json = file_get_contents("php://input");
     $delete_comment = json_decode($json, true);
-    
-    /**
-     * TODO: Only admin and the comment owner can hide a comment.
-     */
     
     $get_comment_sql = "UPDATE for_comments
                         SET deleted = {$delete_comment['deleted']}
