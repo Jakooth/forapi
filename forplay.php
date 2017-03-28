@@ -2,6 +2,12 @@
 include ('../../forsecret/db.php');
 
 if (getenv('REQUEST_METHOD') == 'GET') {
+    
+    /**
+     * TODO: Tag is not a tag, but ID, url is the real tag.
+     * Replace this onde day with the proper wording.
+     */
+    
     $get_tag = isset($_GET['tag']) ? "{$_GET ['tag']}" : "ANY (SELECT for_articles.article_id FROM for_articles)";
     $get_url = isset($_GET['url']) ? "'{$_GET ['url']}'" : "ANY (SELECT url FROM for_articles)";
     $get_type = isset($_GET['type']) ? "'{$_GET ['type']}'" : "ANY (SELECT `type` FROM for_articles)";
@@ -41,11 +47,11 @@ if (getenv('REQUEST_METHOD') == 'GET') {
      * Also suggested articles by tag when opening another material.
      */
     
-    if (count($_GET) <= 0 || $get_issue ||
+    if (count($_GET) <= 0 || $get_issue || (count($_GET) == 1 &&
+             isset($_GET['offset']) && ! isset($_GET['tag'])) ||
              (count($_GET) == 1 && isset($_GET['offset']) &&
-             ! isset($_GET['tag'])) || (count($_GET) == 1 &&
-             isset($_GET['offset']) && ! isset($_GET['tag'])) || (count($_GET) ==
-             3 && isset($_GET['suggest']) && isset($_GET['tag']) &&
+             ! isset($_GET['tag'])) || (count($_GET) == 3 &&
+             isset($_GET['suggest']) && isset($_GET['tag']) &&
              isset($_GET['offset']))) {
         
         $sort = array();
@@ -85,8 +91,9 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     /**
      * TODO: 3 of 5: Get specific issue or the latest one.
      * This is the backup for getting the latest issue:
-     * AND for_rel_issues.issue_id = (SELECT max(for_rel_issues.issue_id) FROM
-     * for_rel_issues)
+     * AND for_rel_issues.issue_id = (
+     * SELECT max(for_rel_issues.issue_id)
+     * FROM for_rel_issues)
      */
     
     /**
@@ -151,6 +158,7 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     $covers_counter = 0;
     
     /**
+     * This is for the listing on the portal page.
      * Article basic information.
      */
     
@@ -178,6 +186,25 @@ if (getenv('REQUEST_METHOD') == 'GET') {
     }
     
     while ($article = mysqli_fetch_assoc($get_article_result)) {
+        
+        /**
+         * Place comments only as a total number.
+         */
+        
+        $get_comments_sql = "SELECT for_comments.comment_id
+                             FROM for_comments
+                             WHERE for_comments.article_id = {$article['article_id']};";
+        
+        $get_comments_result = mysqli_query($link, $get_comments_sql);
+        
+        if ($get_comments_result) {
+            $article['comments'] = mysqli_num_rows($get_comments_result);
+        }
+        
+        /**
+         * For revies attache the better, worse and equal.
+         */
+        
         if ($article['subtype'] == 'review' || $article['subtype'] == 'video') {
             
             $get_better_sql = "SELECT for_tags.*

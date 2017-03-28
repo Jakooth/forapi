@@ -126,6 +126,46 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     }
     
     if (isset($post_comment['commentId'])) {
+        $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
+        $get_comment_sql = "SELECT for_comments.profile_id,
+                                   for_likes.liked,
+                                   for_likes.disliked,
+                                   for_likes.flagged
+                            FROM for_comments
+                            LEFT JOIN for_likes
+                            ON for_comments.comment_id = for_likes.comment_id
+                            AND for_likes.profile_id = $profile_id_sql
+                            WHERE for_comments.comment_id = {$post_comment['commentId']}
+                            LIMIT 1;";
+        
+        /**
+         * Prevent someone editing other comments.
+         * This is impossible from the UI,
+         * but just in case a protection on API side.
+         */
+        
+        $is_comment_invalid = false;
+        
+        $comment_result = mysqli_query($link, $get_comment_sql);
+        
+        if (! $comment_result) {
+            header('HTTP/1.0 404 Not Found');
+            
+            $events['mysql']['result'] = false;
+            $events['mysql']['code'] = mysqli_errno($link);
+            $events['mysql']['error'] = mysqli_error($link);
+            $events['comments']['message'] = 'The comment you are trying to update probably no longer exists. Please refersh the page and try again.';
+            
+            echo json_encode(
+                    array(
+                            'events' => $events
+                    ));
+            
+            exit();
+        }
+        
+        $comment = mysqli_fetch_assoc($comment_result);
+        
         if (isset($post_comment['liked'])) {
             $like_sql = "INSERT INTO for_likes (comment_id, profile_id, liked) 
                          VALUES ({$post_comment['commentId']}, 
@@ -137,6 +177,11 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             $comment_sql = "UPDATE for_comments
                             SET likes = likes {$likes_sql} 1
                             WHERE comment_id = {$post_comment['commentId']};";
+            
+            if ($comment['profile_id'] == $profile['profile_id'])
+                $is_comment_invalid = true;
+            if ($comment['liked'] == $post_comment['liked'])
+                    $is_comment_invalid = true;
         } else 
             if (isset($post_comment['disliked'])) {
                 $like_sql = "INSERT INTO for_likes (comment_id, profile_id, disliked)
@@ -149,6 +194,11 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 $comment_sql = "UPDATE for_comments
                                 SET dislikes = dislikes {$likes_sql} 1
                                 WHERE comment_id = {$post_comment['commentId']};";
+                
+                if ($comment['profile_id'] == $profile['profile_id'])
+                    $is_comment_invalid = true;
+                if ($comment['disliked'] == $post_comment['disliked'])
+                    $is_comment_invalid = true;
             } else 
                 if (isset($post_comment['flagged'])) {
                     $like_sql = "INSERT INTO for_likes (comment_id, profile_id, flagged)
@@ -161,17 +211,42 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     $comment_sql = "UPDATE for_comments
                                     SET flags = flags {$likes_sql} 1
                                     WHERE comment_id = {$post_comment['commentId']};";
+                    
+                    if ($comment['profile_id'] == $profile['profile_id'])
+                        $is_comment_invalid = true;
+                    if ($comment['flagged'] == $post_comment['flagged'])
+                        $is_comment_invalid = true;
                 } else 
                     if (isset($post_comment['banned'])) {
                         $comment_sql = "UPDATE for_comments
                                         SET banned = NOT banned
                                         WHERE comment_id = {$post_comment['commentId']};";
+                        
+                        if ($user['app_metadata']['roles'][0] != 'admin' && $user['app_metadata']['roles'][0] !=
+                                 'superadmin')
+                            $is_comment_invalid = true;
                     } else {
                         $comment_sql = "UPDATE for_comments
                                         SET comment = '{$post_comment['comment']}',
                                         updated = now()
                                         WHERE comment_id = {$post_comment['commentId']};";
+                        
+                        if ($comment['profile_id'] != $profile['profile_id'])
+                            $is_comment_invalid = true;
                     }
+        
+        if ($is_comment_invalid) {
+            header('HTTP/1.0 401 Unauthorized');
+            
+            $events['comments']['message'] = 'You do not have persmissions to do this.';
+            
+            echo json_encode(
+                    array(
+                            'events' => $events
+                    ));
+            
+            exit();
+        }
         
         $events['mysql']['operation'] = 'update';
     } else {
@@ -263,6 +338,55 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 if (getenv('REQUEST_METHOD') == 'DELETE') {
     $json = file_get_contents("php://input");
     $delete_comment = json_decode($json, true);
+    
+    $get_comment_sql = "SELECT for_comments.profile_id
+                        FROM for_comments
+                        WHERE comment_id = {$delete_comment['commentId']}
+                        LIMIT 1;";
+    
+    /**
+     * Prevent someone deleting other comments.
+     * This is impossible from the UI,
+     * but just in case a protection on API side.
+     */
+    
+    $is_comment_invalid = false;
+    
+    $comment_result = mysqli_query($link, $get_comment_sql);
+    
+    if (! $comment_result) {
+        header('HTTP/1.0 404 Not Found');
+        
+        $events['mysql']['result'] = false;
+        $events['mysql']['code'] = mysqli_errno($link);
+        $events['mysql']['error'] = mysqli_error($link);
+        $events['comments']['message'] = 'The comment you are trying to delete probably no longer exists. Please refersh the page and try again.';
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
+    
+    $comment = mysqli_fetch_assoc($comment_result);
+    
+    if ($comment['profile_id'] != $profile['profile_id'])
+        $is_comment_invalid = true;
+    
+    if ($is_comment_invalid) {
+        header('HTTP/1.0 401 Unauthorized');
+        
+        $events['comments']['message'] = 'You do not have persmissions to do this.';
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
     
     $get_comment_sql = "UPDATE for_comments
                         SET deleted = {$delete_comment['deleted']}
