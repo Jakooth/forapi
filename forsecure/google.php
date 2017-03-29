@@ -1,8 +1,8 @@
 <?php
-$sitemap_url_1 = "https://www.forplay.bg/sitemap.xml";
-$sitemap_url_2 = "https://forplay.bg/sitemap.xml";
-$sitemap_url_3 = "http://www.forplay.bg/sitemap.xml";
-$sitemap_url_4 = "http://forplay.bg/sitemap.xml";
+$sitemap_url_1 = "https://www.forplay.bg/sitemap";
+$sitemap_url_2 = "https://forplay.bg/sitemap";
+$sitemap_url_3 = "http://www.forplay.bg/sitemap";
+$sitemap_url_4 = "http://forplay.bg/sitemap";
 
 function myCurl ($url)
 {
