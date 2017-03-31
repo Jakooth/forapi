@@ -15,7 +15,123 @@ $profile_sql = "SELECT * FROM for_profiles
 $profile_result = mysqli_query($link, $profile_sql);
 $profile = mysqli_fetch_assoc($profile_result);
 
-if (getenv('REQUEST_METHOD') == 'GET') {
+/**
+ * Get notifications for new comments.
+ */
+
+if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
+    $notifications = array();
+    
+    if (! $profile) {
+        header('HTTP/1.0 401 Unauthorized');
+        
+        $events['comments']['message'] = 'Not authenticated.';
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
+    
+    $comments_sql = "SELECT for_rel_comments.*,
+                            for_articles.article_id,
+                            for_articles.type,
+                            for_articles.subtype,
+                            for_articles.title,
+                            for_articles.url,
+                            for_articles.caret_img
+                     FROM for_rel_comments
+                     LEFT JOIN for_articles
+                     ON for_rel_comments.article_id = for_articles.article_id
+                     WHERE for_rel_comments.profile_id = {$profile['profile_id']}
+                     AND for_rel_comments.read > (now() - INTERVAL 1 MONTH)
+                     ORDER BY for_rel_comments.read;";
+    
+    $comments_result = mysqli_query($link, $comments_sql);
+    
+    if (! $comments_result) {
+        header('HTTP/1.0 404 Not Found');
+        
+        $events['mysql']['result'] = false;
+        $events['mysql']['code'] = mysqli_errno($link);
+        $events['mysql']['error'] = mysqli_error($link);
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
+    
+    /**
+     * Count the number of new comments for each item.
+     */
+    
+    while ($comment = mysqli_fetch_assoc($comments_result)) {
+        $unread_sql = "SELECT for_comments.*
+                       FROM for_comments
+                       WHERE article_id = {$comment['article_id']}
+                       AND created > '{$comment['read']}'
+                       ORDER BY created DESC;";
+        
+        $unread_result = mysqli_query($link, $unread_sql);
+        
+        if (! $unread_result) {
+            header('HTTP/1.0 404 Not Found');
+            
+            $events['mysql']['result'] = false;
+            $events['mysql']['code'] = mysqli_errno($link);
+            $events['mysql']['error'] = mysqli_error($link);
+            
+            echo json_encode(
+                    array(
+                            'events' => $events
+                    ));
+            
+            exit();
+        }
+        
+        $latest = mysqli_fetch_assoc($unread_result);
+        
+        mysqli_data_seek($unread_result, 0);
+        
+        $comment['latest'] = $latest['comment_id'];
+        $comment['unread'] = mysqli_num_rows($unread_result);
+        
+        if ($comment['unread'] > 0)
+            $notifications[] = $comment;
+    }
+    
+    /**
+     * At the end consider that the new comments are viewed.
+     * Do not display them again.
+     */
+    
+    $comment_sql = "UPDATE for_rel_comments
+                    SET read = now()
+                    WHERE profile_id = {$profile['profile_id']};";
+    
+    /**
+     * TODO: Commit this thing above to MySQL.
+     */
+    
+    echo json_encode(
+            array(
+                    'notifications' => $notifications,
+                    'events' => $events
+            ));
+    
+    mysqli_close($link);
+}
+
+/**
+ * Get comments by article.
+ */
+
+if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
     $get_comments_sql = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
     $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
     
@@ -128,6 +244,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     if (isset($post_comment['commentId'])) {
         $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
         $get_comment_sql = "SELECT for_comments.profile_id,
+                                   for_comments.article_id,
                                    for_likes.liked,
                                    for_likes.disliked,
                                    for_likes.flagged
@@ -181,7 +298,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             if ($comment['profile_id'] == $profile['profile_id'])
                 $is_comment_invalid = true;
             if ($comment['liked'] == $post_comment['liked'])
-                    $is_comment_invalid = true;
+                $is_comment_invalid = true;
         } else 
             if (isset($post_comment['disliked'])) {
                 $like_sql = "INSERT INTO for_likes (comment_id, profile_id, disliked)
@@ -219,7 +336,8 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                 } else 
                     if (isset($post_comment['banned'])) {
                         $comment_sql = "UPDATE for_comments
-                                        SET banned = NOT banned
+                                        SET banned = NOT banned,
+                                            updated = now()
                                         WHERE comment_id = {$post_comment['commentId']};";
                         
                         if ($user['app_metadata']['roles'][0] != 'admin' && $user['app_metadata']['roles'][0] !=
@@ -228,7 +346,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     } else {
                         $comment_sql = "UPDATE for_comments
                                         SET comment = '{$post_comment['comment']}',
-                                        updated = now()
+                                            updated = now()
                                         WHERE comment_id = {$post_comment['commentId']};";
                         
                         if ($comment['profile_id'] != $profile['profile_id'])
@@ -310,6 +428,20 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             
             break;
     }
+    
+    /**
+     * Subscribe to update notifications.
+     */
+    
+    $article_sql = isset($post_comment['articleId']) ? $post_comment['articleId'] : $comment['article_id'];
+    $comment_rel_sql = "INSERT INTO for_rel_comments 
+                               (profile_id, article_id, `read`)
+                        VALUES ({$profile['profile_id']}, 
+                                 $article_sql, 
+                                 now())
+                        ON DUPLICATE KEY UPDATE `read` = now();";
+    
+    $comment_result = mysqli_query($link, $comment_rel_sql);
     
     /**
      * One last fetch from the data base to get the updated comment.
