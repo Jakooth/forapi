@@ -143,14 +143,21 @@ if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
                             for_profiles.avatar,
                             for_likes.liked,
                             for_likes.disliked,
-                            for_likes.flagged
+                            for_likes.flagged,
+                            for_articles.type,
+                            for_articles.subtype,
+                            for_articles.title,
+                            for_articles.url,
+                            for_articles.caret_img
                      FROM for_comments
+                     LEFT JOIN for_articles
+                     ON for_comments.article_id = for_articles.article_id
                      LEFT JOIN for_profiles
                      ON for_comments.profile_id = for_profiles.profile_id
                      LEFT JOIN for_likes
                      ON for_comments.comment_id = for_likes.comment_id 
                      AND for_likes.profile_id = $profile_id_sql
-                     WHERE article_id = $get_comments_sql
+                     WHERE for_comments.article_id = $get_comments_sql
                      ORDER BY path;";
     
     $comments_result = mysqli_query($link, $comments_sql);
