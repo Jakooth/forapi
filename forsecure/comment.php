@@ -111,12 +111,10 @@ if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
      */
     
     $comment_sql = "UPDATE for_rel_comments
-                    SET read = now()
+                    SET `read` = now()
                     WHERE profile_id = {$profile['profile_id']};";
     
-    /**
-     * TODO: Commit this thing above to MySQL.
-     */
+    $comment_result = mysqli_query($link, $comment_sql);
     
     echo json_encode(
             array(

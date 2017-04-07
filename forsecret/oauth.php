@@ -7,17 +7,20 @@ use Auth0\SDK\API\Management;
 /**
  * Include required sources from composer.
  */
-require __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '/vendor/autoload.php';
 
 /**
  * Create simple router to check the request url.
  */
+
 $router = new \Bramus\Router\Router();
 
 /**
  * This to validate secure requests and set user permissions.
  */
-$router->before('GET|POST', 
+
+$router->before('GET|POST|DELETE', 
         '(log.*|save.*|imgs.*|google.*|profiles.*|comment.*)', 
         function ()
         {
@@ -33,24 +36,32 @@ $router->before('GET|POST',
             $authorizationHeader = isset($requestHeaders['Authorization']) ? $requestHeaders['Authorization'] : null;
             
             if ($authorizationHeader == null) {
-                header('HTTP/1.0 401 Unauthorized');
-                
-                /**
-                 * No authorization header sent.
-                 */
-                
                 $events['auth0']['method'] = 'secure';
                 $events['auth0']['authorized'] = false;
                 $events['auth0']['api'] = true;
                 $events['auth0']['user'] = false;
                 $events['auth0']['message'] = 'No authorization header sent.';
                 
-                echo json_encode(
-                        array(
-                                'events' => $events
-                        ));
+                /**
+                 * No authorization header sent.
+                 * Allow to GET comments as a public service.
+                 * POST and DELETE are restricted only to authorized users.
+                 */
                 
-                exit();
+                if ($_SERVER['REQUEST_METHOD'] != 'GET' &&
+                         ! strpos($requestUri, 'comment.php')) {
+                    
+                    header('HTTP/1.0 401 Unauthorized');
+                    
+                    echo json_encode(
+                            array(
+                                    'events' => $events
+                            ));
+                    
+                    exit();
+                } else {
+                    return;
+                }
             }
             
             /**
@@ -58,10 +69,9 @@ $router->before('GET|POST',
              */
             
             $token = str_replace('Bearer ', '', $authorizationHeader);
-            $secret = '<--!secret-->';
-            $client = '<--!client-->';
-            $domain = '<--!forplay.eu.auth0.com-->';
-            $domainUrl = '<--!https://forplay.eu.auth0.com/-->';
+            $client = 'P8wrSYlMVUu5rZDEFGSqFL18tVfgo9Gz';
+            $domain = 'forplay.eu.auth0.com';
+            $domainUrl = 'https://forplay.eu.auth0.com/';
             
             $decodedToken = null;
             $auth0Api = new Management($token, $domain);
@@ -69,16 +79,14 @@ $router->before('GET|POST',
             $verifier = new JWTVerifier(
                     [
                             'suported_algs' => [
-                                    'RS256',
-                                    'HS256'
+                                    'RS256'
                             ],
                             'valid_audiences' => [
                                     $client
                             ],
                             'authorized_iss' => [
                                     $domainUrl
-                            ],
-                            'client_secret' => $secret
+                            ]
                     ]);
             
             try {
@@ -160,7 +168,8 @@ $router->before('GET|POST',
 /**
  * These is the public API to get Forplay content.
  */
-$router->match('POST|GET', '(tags.*|search.*|forplay.*|sitemap.*)', 
+
+$router->match('GET|POST|DELETE', '(tags.*|search.*|forplay.*|sitemap.*)', 
         function ()
         {
             global $events;
@@ -174,7 +183,9 @@ $router->match('POST|GET', '(tags.*|search.*|forplay.*|sitemap.*)',
 /**
  * These is the private API save Forplay content and see the log.
  */
-$router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profile.*|comment.*)', 
+
+$router->match('GET|POST|DELETE', 
+        '(log.*|save.*|imgs.*|google.*|profile.*|comment.*)', 
         function ()
         {
             global $events;
@@ -188,6 +199,7 @@ $router->match('POST|GET', '(log.*|save.*|imgs.*|google.*|profile.*|comment.*)',
 /**
  * If someone tries to access unknown API.
  */
+
 $router->set404(
         function ()
         {
@@ -204,5 +216,6 @@ $router->set404(
 /**
  * Run the router.
  */
+
 $router->run();
 ?>

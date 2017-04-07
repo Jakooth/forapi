@@ -1,10 +1,10 @@
 <?php
 $host = '<--!localhost-->';
-$user = '<--!root-->';
+$id = '<--!root-->';
 $password = '<--!password-->';
 $db = '<--!forplay-->';
 
-$link = mysqli_connect($host, $user, $password, $db);
+$link = mysqli_connect($host, $id, $password, $db);
 
 Global $events;
 Global $user;
