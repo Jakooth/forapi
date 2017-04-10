@@ -114,7 +114,7 @@ if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
                     SET `read` = now()
                     WHERE profile_id = {$profile['profile_id']};";
     
-    $comment_result = mysqli_query($link, $comment_sql);
+    //$comment_result = mysqli_query($link, $comment_sql);
     
     echo json_encode(
             array(
@@ -131,6 +131,7 @@ if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
 
 if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
     $get_comments_sql = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
+    $order_sql = isset($_GET['origin']) ? "banned ASC, flags DESC, updated DESC, created DESC LIMIT 1000" : "path";
     $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
     
     $comments_sql = "SELECT for_comments.*, 
@@ -156,7 +157,7 @@ if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
                      ON for_comments.comment_id = for_likes.comment_id 
                      AND for_likes.profile_id = $profile_id_sql
                      WHERE for_comments.article_id = $get_comments_sql
-                     ORDER BY path;";
+                     ORDER BY $order_sql;";
     
     $comments_result = mysqli_query($link, $comments_sql);
     
