@@ -114,7 +114,7 @@ if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
                     SET `read` = now()
                     WHERE profile_id = {$profile['profile_id']};";
     
-    //$comment_result = mysqli_query($link, $comment_sql);
+    $comment_result = mysqli_query($link, $comment_sql);
     
     echo json_encode(
             array(
@@ -131,8 +131,9 @@ if (getenv('REQUEST_METHOD') == 'GET' && isset($_GET['profileId'])) {
 
 if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
     $get_comments_sql = isset($_GET['articleId']) ? "'{$_GET ['articleId']}'" : "ANY (SELECT article_id FROM for_comments)";
-    $order_sql = isset($_GET['origin']) ? "banned ASC, flags DESC, updated DESC, created DESC LIMIT 1000" : "path";
+    $order_sql = isset($_GET['origin']) ? "banned ASC, flags DESC, IF (updated > created, updated, created) DESC LIMIT 1000" : "path";
     $profile_id_sql = isset($profile) ? "{$profile['profile_id']}" : "null";
+    $deleted_sql = isset($_GET['origin']) ? "" : "AND for_comments.deleted = 0";
     
     $comments_sql = "SELECT for_comments.*, 
                             for_profiles.email, 
@@ -157,6 +158,7 @@ if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
                      ON for_comments.comment_id = for_likes.comment_id 
                      AND for_likes.profile_id = $profile_id_sql
                      WHERE for_comments.article_id = $get_comments_sql
+                     $deleted_sql
                      ORDER BY $order_sql;";
     
     $comments_result = mysqli_query($link, $comments_sql);
@@ -207,6 +209,72 @@ if (getenv('REQUEST_METHOD') == 'POST') {
     
     $comment_sql = false;
     $like_sql = false;
+    
+    /**
+     * Strip HTML tags, attributes and new lines at the end;
+     * Some tags and attributes are allowed.
+     */
+    
+    if (isset($post_comment['comment'])) {
+        $commentHtml = html_entity_decode($post_comment['comment']);
+        $commentHtml = strip_tags($commentHtml, 
+                '<img><a><i><b><em><strong><br>');
+        
+        $dom = new DOMDocument();
+        
+        /**
+         * Some stupid error for invalid content.
+         * Diable it temporary.
+         * http://stackoverflow.com/questions/1685277/warning-domdocumentloadhtml-htmlparseentityref-expecting-in-entity
+         */
+        
+        $internalErrors = libxml_use_internal_errors(true);
+        
+        /**
+         * Need to force utf-8 for bulgarian characters.
+         */
+        
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $commentHtml);
+        
+        /**
+         * Restore internal errors.
+         */
+        
+        libxml_use_internal_errors($internalErrors);
+        
+        $xpath = new DOMXPath($dom);
+        $elements = $xpath->query("//*");
+        
+        foreach ($elements as $element) {
+            for ($i = $element->attributes->length; -- $i >= 0;) {
+                $name = $element->attributes->item($i)->name;
+                
+                if (('img' === $element->nodeName && 'src' === $name) ||
+                         ('img' === $element->nodeName && 'alt' === $name) ||
+                         ('a' === $element->nodeName && 'href' === $name) ||
+                         ('a' === $element->nodeName && 'target' === $name)) {
+                    
+                    continue;
+                }
+                
+                $element->removeAttribute($name);
+            }
+        }
+        
+        $commentHtml = $dom->saveHTML();
+        
+        /**
+         * This one above will wrap everything in paragraph.
+         */
+        
+        $commentHtml = strip_tags($commentHtml, 
+                '<img><a><i><b><em><strong><br>');
+        
+        $post_comment['comment'] = preg_replace(
+                '#(( ){0,}<br( {0,})(/{0,1})>){1,}$#i', '', $commentHtml);
+        $post_comment['comment'] = mysqli_real_escape_string($link, 
+                $post_comment['comment']);
+    }
     
     if (isset($post_comment['parentCommentId'])) {
         $get_parent_comment_sql = "SELECT * FROM for_comments

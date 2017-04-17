@@ -193,7 +193,8 @@ if (getenv('REQUEST_METHOD') == 'GET') {
         
         $get_comments_sql = "SELECT for_comments.comment_id
                              FROM for_comments
-                             WHERE for_comments.article_id = {$article['article_id']};";
+                             WHERE for_comments.article_id = {$article['article_id']}
+                             AND for_comments.deleted = 0;";
         
         $get_comments_result = mysqli_query($link, $get_comments_sql);
         
