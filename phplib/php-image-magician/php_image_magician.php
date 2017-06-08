@@ -327,8 +327,8 @@ class imageLib
     // *** Get optimal width and height - based on $option
     $dimensionsArray = $this->getDimensions($newWidth, $newHeight, $option);
 
-    $optimalWidth  = $dimensionsArray['optimalWidth'];
-    $optimalHeight = $dimensionsArray['optimalHeight'];
+    $optimalWidth  = ceil($dimensionsArray['optimalWidth']);
+    $optimalHeight = ceil($dimensionsArray['optimalHeight']);
 
     // *** Resample - create image canvas of x, y size
     $this->imageResized = imagecreatetruecolor($optimalWidth, $optimalHeight);
