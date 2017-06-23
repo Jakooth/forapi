@@ -400,6 +400,7 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                     }
                     
                     $magic->resizeImage(356, 512, 'crop');
+                    break;
                 case 'poster':
                 case 'cover':
                     if ($_POST['type'] == 'album') {
