@@ -2,6 +2,17 @@
 include ('../../../forsecret/db.php');
 require_once ('../phplib/php-image-magician/php_image_magician.php');
 
+function compressPng ($file)
+{
+    $png = imagecreatefromstring(file_get_contents($file));
+    
+    imagealphablending($png, false);
+    imagesavealpha($png, true);
+    
+    imagepng($png, $file, 9);
+    imagedestroy($png);
+}
+
 if (getenv('REQUEST_METHOD') == 'DELETE') {
     
     /**
@@ -176,6 +187,14 @@ if (getenv('REQUEST_METHOD') == 'POST') {
                      ($w == '1280' && $h == '800') ||
                      ($w == '1680' && $h == '1050')) {
                 
+                /**
+                 * Better compression for PNG images.
+                 */
+                
+                if ($mime == 'png') {
+                    compressPng($file);
+                }
+                
                 goto end;
             }
             
@@ -202,6 +221,14 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             }
             
             $magic->saveImage($file, 100);
+            
+            /**
+             * Better compression for PNG images.
+             */
+            
+            if ($mime == 'png') {
+                compressPng($file);
+            }
             
             /**
              * Insert activity log event for images which are resized.
@@ -245,11 +272,27 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             $h = $magic->getOriginalHeight();
             
             if (($w == '128' && $h == '128')) {
+                /**
+                 * Better compression for PNG images.
+                 */
+                
+                if ($mime == 'png') {
+                    compressPng($file);
+                }
+                
                 goto end;
             }
             
             $magic->resizeImage(128, 128, 'crop');
             $magic->saveImage($file, 100);
+            
+            /**
+             * Better compression for PNG images.
+             */
+            
+            if ($mime == 'png') {
+                compressPng($file);
+            }
             
             /**
              * Insert activity log event for images which are resized.
@@ -305,11 +348,25 @@ if (getenv('REQUEST_METHOD') == 'POST') {
             $h = $magic->getOriginalHeight();
             
             if (($w == '512' && $h == '512')) {
+                /**
+                 * Better compression for PNG images.
+                 */
+                
+                compressPng($file);
+                
                 goto end;
             }
             
             $magic->resizeImage(512, 512, 'crop');
             $magic->saveImage($file, 100);
+            
+            /**
+             * Better compression for PNG images.
+             */
+            
+            if ($mime == 'png') {
+                compressPng($file);
+            }
             
             /**
              * Insert activity log event for images which are resized.
