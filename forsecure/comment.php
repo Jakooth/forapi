@@ -201,6 +201,19 @@ if (getenv('REQUEST_METHOD') == 'GET' && ! isset($_GET['profileId'])) {
 }
 
 if (getenv('REQUEST_METHOD') == 'POST') {
+    if (! $profile) {
+        header('HTTP/1.0 401 Unauthorized');
+        
+        $events['comments']['message'] = 'Not authenticated.';
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
+    
     $json = file_get_contents("php://input");
     $post_comment = json_decode($json, true);
     
@@ -542,6 +555,19 @@ if (getenv('REQUEST_METHOD') == 'POST') {
 }
 
 if (getenv('REQUEST_METHOD') == 'DELETE') {
+    if (! $profile) {
+        header('HTTP/1.0 401 Unauthorized');
+        
+        $events['comments']['message'] = 'Not authenticated.';
+        
+        echo json_encode(
+                array(
+                        'events' => $events
+                ));
+        
+        exit();
+    }
+    
     $json = file_get_contents("php://input");
     $delete_comment = json_decode($json, true);
     
