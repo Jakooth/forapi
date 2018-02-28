@@ -15,7 +15,13 @@ $urlset_xmlns->value = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 $urlset_xmlns_news->value = 'http://www.google.com/schemas/sitemap-news/0.9';
 
 $urlset->appendChild($urlset_xmlns);
-$urlset->appendChild($urlset_xmlns_news);
+
+/**
+ * We are not accepted in Goolge news and we no longer provide news.
+ * So I'm commenting this until we extend our daily news service.
+ *
+ * $urlset->appendChild($urlset_xmlns_news);
+ */
 
 /**
  * TODO: Split this on two to have 1000 news but 50000 articles.
@@ -66,32 +72,38 @@ while ($article = mysqli_fetch_assoc($get_articles_result)) {
     
     $url->appendChild($loc);
     
-    if ($article['subtype'] == 'news') {
-        $news = $sitemap->createElement('news:news');
-        $news_publication = $sitemap->createElement('news:publication');
-        $news_name = $sitemap->createElement('news:name', 'Forplay');
-        $news_language = $sitemap->createElement('news:language', 'bg');
-        $news_piblication_date = $sitemap->createElement(
-                'news:publication_date', $googleDate);
-        $news_keywords = $sitemap->createElement('news:keywords', 
-                join(', ', $article['tags']));
-        $news_title = $sitemap->createElement('news:title', $article['title']);
-		$news_genres = $sitemap->createElement('news:genres', 'UserGenerated');
-        
-        $news->appendChild($news_publication);
-        $news_publication->appendChild($news_name);
-        $news_publication->appendChild($news_language);
-		$news->appendChild($news_genres);
-        $news->appendChild($news_piblication_date);
-        $news->appendChild($news_keywords);
-        $news->appendChild($news_title);
-        $url->appendChild($news);
-    }
+    /**
+     * We are not accepted in Goolge news and we no longer provide news.
+     * So I'm commenting this until we extend our daily news service.
+     *
+     *
+     * if ($article['subtype'] == 'news') {
+     * $news = $sitemap->createElement('news:news');
+     * $news_publication = $sitemap->createElement('news:publication');
+     * $news_name = $sitemap->createElement('news:name', 'Forplay');
+     * $news_language = $sitemap->createElement('news:language', 'bg');
+     * $news_piblication_date = $sitemap->createElement(
+     * 'news:publication_date', $googleDate);
+     * $news_keywords = $sitemap->createElement('news:keywords',
+     * join(', ', $article['tags']));
+     * $news_title = $sitemap->createElement('news:title', $article['title']);
+     * $news_genres = $sitemap->createElement('news:genres', 'UserGenerated');
+     *
+     * $news->appendChild($news_publication);
+     * $news_publication->appendChild($news_name);
+     * $news_publication->appendChild($news_language);
+     * $news->appendChild($news_genres);
+     * $news->appendChild($news_piblication_date);
+     * $news->appendChild($news_keywords);
+     * $news->appendChild($news_title);
+     * $url->appendChild($news);
+     * }
+     */
     
     $urlset->appendChild($url);
 }
 
-$sitemap->save("sitemap.xml");
+$sitemap->save("../sitemap.xml");
 
 echo $sitemap->saveXML();
 

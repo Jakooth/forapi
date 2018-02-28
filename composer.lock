@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "1be29a7295597ca39ae786813d221d11",
+    "content-hash": "2378b4a602ca02ad19c423731a083397",
     "packages": [
         {
             "name": "adoy/oauth2",
@@ -48,23 +48,23 @@
         },
         {
             "name": "auth0/auth0-php",
-            "version": "4.0.11",
+            "version": "4.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/auth0/auth0-PHP.git",
-                "reference": "d02f46240abddf1d0f4f667e1aab78d7737c4eff"
+                "reference": "50cfcafab2dfa8ae88a4abce4dc4c076f7b4b513"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/auth0/auth0-PHP/zipball/d02f46240abddf1d0f4f667e1aab78d7737c4eff",
-                "reference": "d02f46240abddf1d0f4f667e1aab78d7737c4eff",
+                "url": "https://api.github.com/repos/auth0/auth0-PHP/zipball/50cfcafab2dfa8ae88a4abce4dc4c076f7b4b513",
+                "reference": "50cfcafab2dfa8ae88a4abce4dc4c076f7b4b513",
                 "shasum": ""
             },
             "require": {
                 "adoy/oauth2": "^1.3",
                 "ext-json": "*",
                 "firebase/php-jwt": "^3.0",
-                "guzzlehttp/guzzle": "^6.1",
+                "guzzlehttp/guzzle": "~6.0",
                 "php": ">=5.5"
             },
             "require-dev": {
@@ -90,7 +90,7 @@
                 }
             ],
             "description": "Auth0 PHP SDK.",
-            "time": "2016-12-30T21:39:54+00:00"
+            "time": "2017-07-24T20:27:25+00:00"
         },
         {
             "name": "bramus/router",
@@ -98,20 +98,20 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/bramus/router.git",
-                "reference": "e331410878b58635a3a3cccae10a977890ec9c79"
+                "reference": "976f00cce0a5b89492a08aa807e64ae3b1a5a542"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bramus/router/zipball/e331410878b58635a3a3cccae10a977890ec9c79",
-                "reference": "e331410878b58635a3a3cccae10a977890ec9c79",
+                "url": "https://api.github.com/repos/bramus/router/zipball/976f00cce0a5b89492a08aa807e64ae3b1a5a542",
+                "reference": "976f00cce0a5b89492a08aa807e64ae3b1a5a542",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
             "require-dev": {
-                "phpunit/php-code-coverage": "~1.2",
-                "phpunit/phpunit": "~3.7"
+                "phpunit/php-code-coverage": "^4.0.1",
+                "phpunit/phpunit": "5.5.*"
             },
             "type": "library",
             "autoload": {
@@ -136,7 +136,7 @@
                 "router",
                 "routing"
             ],
-            "time": "2016-07-15T19:36:40+00:00"
+            "time": "2017-02-22T15:43:38+00:00"
         },
         {
             "name": "firebase/php-jwt",
@@ -403,28 +403,28 @@
         },
         {
             "name": "vlucas/phpdotenv",
-            "version": "dev-master",
+            "version": "v2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/phpdotenv.git",
-                "reference": "7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5"
+                "reference": "9caf304153dc2288e4970caec6f1f3b3bc205412"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5",
-                "reference": "7ac2c1cef304f5bd5a8d40750fbcbdd49333b9e5",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/9caf304153dc2288e4970caec6f1f3b3bc205412",
+                "reference": "9caf304153dc2288e4970caec6f1f3b3bc205412",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.9"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8 || ^5.0"
+                "phpunit/phpunit": "^4.8|^5.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.4-dev"
+                    "dev-master": "2.2-dev"
                 }
             },
             "autoload": {
@@ -434,7 +434,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "BSD-3-Clause-Attribution"
+                "BSD"
             ],
             "authors": [
                 {
@@ -444,20 +444,20 @@
                 }
             ],
             "description": "Loads environment variables from `.env` to `getenv()`, `$_ENV` and `$_SERVER` automagically.",
+            "homepage": "http://github.com/vlucas/phpdotenv",
             "keywords": [
                 "dotenv",
                 "env",
                 "environment"
             ],
-            "time": "2017-02-03T22:05:04+00:00"
+            "time": "2015-12-29T15:10:30+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "bramus/router": 20,
-        "vlucas/phpdotenv": 20
+        "bramus/router": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
